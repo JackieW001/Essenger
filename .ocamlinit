@@ -1,4 +1,8 @@
+#require "oUnit";;
+#require "yojson";;
 #require "ANSITerminal";;
+#require "unix";;
 #directory "_build";;
 #load "command.cmo";;
 #load "essenger.cmo";;
+#load "server.cmo";;

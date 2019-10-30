@@ -1,5 +1,5 @@
 open Command
-
+open Server 
 (** [main] is the main interface for Essenger. It takes parsed commands from 
     the command module and processes them to perform the proper function as 
     specified by the command. *)

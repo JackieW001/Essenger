@@ -1,4 +1,4 @@
-MODULES=command essenger
+MODULES=command essenger server 
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
