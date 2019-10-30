@@ -5,6 +5,7 @@ type username = string
 type command = 
   | Get of username 
   | Send of username * message
+  | Help
   | Logout
 
 exception Empty
@@ -26,14 +27,18 @@ let parse input =
   else
     let op = input_string_list |> List.hd in
     let mess = input_string_list |> List.tl in 
-    if String.get op 0 = '@' then
-      if String.sub op 1 (String.length op - 1) = "logout" || 
-         String.sub op 1 (String.length op - 1) = "Logout" then Logout 
+    let comm = String.sub op 1 (String.length op - 1) in
+    if String.get op 0 = '@' && String.length comm > 0 then
+      if comm = "logout" || 
+         comm = "Logout" then Logout 
       else 
+      if comm = "help" ||
+         comm = "Help" then Help
+      else
       if List.length mess > 0 
       then 
-        Send (String.sub op 1 (String.length op - 1),string_list_to_string mess)
+        Send (comm,string_list_to_string mess)
       else
-        Get (String.sub op 1 (String.length op - 1))
+        Get comm
     else raise Malformed
 

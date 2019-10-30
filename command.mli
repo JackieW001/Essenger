@@ -4,9 +4,15 @@
 
 (** The type [message] represents the message that a user sends to another 
     user. *)
-type message
+type message = string
 
-type command
+type username = string
+
+type command = 
+  | Get of username 
+  | Send of username * message
+  | Help
+  | Logout 
 
 exception Empty
 
