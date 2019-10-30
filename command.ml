@@ -12,6 +12,10 @@ exception Empty
 
 exception Malformed
 
+(*
+exception UnknownUser
+*)
+
 (** [string_list_to_string lst] returns a concatenated string s from the
     string list lst from left to right. *)
 let rec string_list_to_string (lst:string list) = 
@@ -22,9 +26,9 @@ let rec string_list_to_string (lst:string list) =
   String.trim ex_name
 
 let parse input = 
-  let input_string_list = String.split_on_char ' ' (String.trim input) in
-  if List.length input_string_list = 0 then raise Empty
+  if String.length input = 0 then raise Empty
   else
+    let input_string_list = String.split_on_char ' ' (String.trim input) in
     let op = input_string_list |> List.hd in
     let mess = input_string_list |> List.tl in 
     let comm = String.sub op 1 (String.length op - 1) in
@@ -35,6 +39,9 @@ let parse input =
       if comm = "help" ||
          comm = "Help" then Help
       else
+        (* 
+      if <username is valid> then <continue below> else raise UnknownUser
+      *)
       if List.length mess > 0 
       then 
         Send (comm,string_list_to_string mess)
