@@ -1,9 +1,9 @@
-MODULES=dictionary dictionarySet listDictionary engine listEngine authors \
-  treeDictionary treeEngine
+MODULES=command essenger
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
 TEST=test.byte
+MAIN=essenger.byte
 OCAMLBUILD=ocamlbuild -use-ocamlfind -plugin-tag 'package(bisect_ppx-ocamlbuild)'
 PKGS=unix,oUnit,str,qcheck,csv
 
@@ -52,3 +52,6 @@ docs-private: build
 clean:
 	ocamlbuild -clean
 	rm -rf doc.public doc.private report search_src.zip bisect*.out
+
+essenger:
+	$(OCAMLBUILD) $(MAIN) && ./$(MAIN)
