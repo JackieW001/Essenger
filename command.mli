@@ -17,11 +17,12 @@ type username = string
     [Logout] exits Essenger. 
 
     Future Commands:
-    [Friends] returns a list of users the current user has conversations with.
+    [Friends] returns a list of users the current user has conversations with.    
 *)
 type command = 
   | Get of username 
   | Send of username * message
+  | Friends 
   | Help
   | Logout 
 
