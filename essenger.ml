@@ -16,19 +16,19 @@ let rec main () =
       ANSITerminal.(print_string [cyan] 
                       ("Recipient: " ^ r ^ "\nMessage: " ^ m));
       ANSITerminal.(print_string [red] 
-                      ("\nUnimplemented\n"));
+                      ("\nUnimplemented."));
       main ()
     | Get r -> (* Get message history *) 
       ANSITerminal.(print_string [cyan] 
                       ("Getting message history with: " ^ r));
       ANSITerminal.(print_string [red] 
-                      ("\nUnimplemented\n"));
+                      ("\nUnimplemented."));
       main ()
     | Friends -> (* Get List of friends *) 
       ANSITerminal.(print_string [cyan] 
                       ("Getting friends list."));
       ANSITerminal.(print_string [red] 
-                      ("\nUnimplemented\n"));
+                      ("\nUnimplemented."));
       main ()
     | Help -> (* Access Help Options *) 
       ANSITerminal.(print_string [cyan]
@@ -68,10 +68,8 @@ let rec login () =
   *)
   (* THE FOLLOWING IS HARDCODED AUTHENTICATION *)
   if username_input = "master" && password_input = "master" then 
-    (print_string ("Testing: " ^ username_input ^ " "^ password_input);
-     print_newline ();
-     ANSITerminal.(print_string [cyan] 
-                     ("\n"^username_input^", welcome to Essenger.\n"));
+    (ANSITerminal.(print_string [green] 
+                     ("\n"^username_input^", welcome to Essenger."));
      main ())
   else
     ANSITerminal.(print_string [red] "\nIncorrect login, try again.");
