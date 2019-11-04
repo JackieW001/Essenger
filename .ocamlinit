@@ -2,6 +2,8 @@
 #require "yojson";;
 #require "ANSITerminal";;
 #require "unix";;
+#require "cohttp-lwt";;
+#require "cohttp-lwt-unix";;
 #directory "_build";;
 #load "command.cmo";;
 #load "essenger.cmo";;

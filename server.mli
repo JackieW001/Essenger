@@ -35,5 +35,5 @@ val convert_time: string -> timestamp
 
 (** [get_msg s r i] returns the last [i] messages between [s] and [r] as
     a JSON file. *)
-val get_msg: sender -> recipient -> int -> Yojson.Basic.t 
+val get_msg: sender -> recipient -> int -> string 
 

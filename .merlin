@@ -2,4 +2,7 @@ B _build
 PKG oUnit
 PKG yojson
 PKG unix
+PKG cohttp 
+PKG lwt
+PKG cohttp_lwt_unix
 PKG ANSITerminal

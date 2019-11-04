@@ -4,8 +4,8 @@ MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
 TEST=test.byte
 MAIN=essenger.byte
-OCAMLBUILD=ocamlbuild -use-ocamlfind -plugin-tag 'package(bisect_ppx-ocamlbuild)'
-PKGS=unix,oUnit,str,qcheck,csv
+OCAMLBUILD=ocamlbuild -use-ocamlfind 
+PKGS=unix,oUnit,str,lwt,cohttp,cohttp-lwt-unix
 
 default: build
 	utop
@@ -50,7 +50,7 @@ docs-private: build
 		-inv-merge-ml-mli -m A -hide-warnings $(MLIS) $(MLS)
 
 clean:
-	ocamlbuild -clean
+	ocamlbuild -clean -thread
 	rm -rf doc.public doc.private report search_src.zip bisect*.out
 
 essenger:
