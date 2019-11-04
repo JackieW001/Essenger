@@ -14,18 +14,29 @@ let rec main () =
     match command with
     | Send (r,m) -> (* Send message to server *) 
       ANSITerminal.(print_string [cyan] 
-                      ("Recipient: " ^ r ^ " Message: " ^ m));
+                      ("Recipient: " ^ r ^ "\nMessage: " ^ m));
+      ANSITerminal.(print_string [red] 
+                      ("\nUnimplemented."));
       main ()
     | Get r -> (* Get message history *) 
       ANSITerminal.(print_string [cyan] 
                       ("Getting message history with: " ^ r));
+      ANSITerminal.(print_string [red] 
+                      ("\nUnimplemented."));
+      main ()
+    | Friends -> (* Get List of friends *) 
+      ANSITerminal.(print_string [cyan] 
+                      ("Getting friends list."));
+      ANSITerminal.(print_string [red] 
+                      ("\nUnimplemented."));
       main ()
     | Help -> (* Access Help Options *) 
       ANSITerminal.(print_string [cyan]
                       "\nSupported Commands: \n
-                    @<username> : Gets your message history with <username>\n
-                    @<username> <message> : Sends <message> to user <username>\n
-                    @Logout or @logout : Log out of Essenger.\n");
+              @<username> : Gets your message history with <username>\n
+              @<username> <message> : Sends <message> to user <username>\n
+              @Friends or @friends : View who you've had conversations with.\n
+              @Logout or @logout : Log out of Essenger.\n");
       main ()
     | Logout -> (* Logout From Account *) 
       ANSITerminal.(print_string [cyan] 
@@ -57,13 +68,11 @@ let rec login () =
   *)
   (* THE FOLLOWING IS HARDCODED AUTHENTICATION *)
   if username_input = "master" && password_input = "master" then 
-    (print_string ("Testing: " ^ username_input ^ " "^ password_input);
-     print_newline ();
-     ANSITerminal.(print_string [cyan] 
-                     ("\n"^username_input^", welcome to Essenger.\n"));
+    (ANSITerminal.(print_string [green] 
+                     ("\n"^username_input^", welcome to Essenger."));
      main ())
   else
-    print_string "Incorrect login, try again.";
+    ANSITerminal.(print_string [red] "\nIncorrect login, try again.");
   login ()
 (* END of Hardcode *)
 

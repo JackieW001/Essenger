@@ -5,6 +5,7 @@ type username = string
 type command = 
   | Get of username 
   | Send of username * message
+  | Friends
   | Help
   | Logout
 
@@ -38,6 +39,9 @@ let parse input =
       else 
       if comm = "help" ||
          comm = "Help" then Help
+      else
+      if comm = "friends" || 
+         comm = "Friends" then Friends
       else
         (* 
       if <username is valid> then <continue below> else raise UnknownUser
