@@ -4,5 +4,6 @@ PKG yojson
 PKG unix
 PKG cohttp 
 PKG lwt
+PKG ssl
 PKG cohttp_lwt_unix
 PKG ANSITerminal
