@@ -35,7 +35,7 @@ let retrieve_user user =
 
 let create_user user pass = 
   let data = Cohttp_lwt.Body.of_string ("{\"password\":\""^pass^"\"}") in 
-  Client.post ~body:data (Uri.of_string (firebase^"/Users/"^user^".json"))
+  Client.put ~body:data (Uri.of_string (firebase^"/Users/"^user^".json"))
   >>= fun (resp, body) ->
   let code = resp |> Response.status |> Code.code_of_status in
   Printf.printf "Response code: %d\n" code;
@@ -57,7 +57,7 @@ let delete_user user =
 
 let create_conversation user1 user2 =
   let data = Cohttp_lwt.Body.of_string ("{\""^user1^"_to_"^user2^"\":\""^user1^"_to_"^user2^".json\"}") in 
-  Client.post ~body:data (Uri.of_string (firebase^"/Conversations/"^user1^"_to_"^user2^".json"))
+  Client.put ~body:data (Uri.of_string (firebase^"/Conversations/"^user1^"_to_"^user2^".json"))
   >>= fun (resp,body) ->
   let code = resp |> Response.status |> Code.code_of_status in
   Printf.printf "Response code: %d\n" code;
@@ -90,9 +90,10 @@ let ()=
   print_newline();
   let created_conversation = Lwt_main.run (create_conversation "bob" "michael") in
   print_endline ("Received body\n" ^ created_conversation);
-  (*
+
+(*
   let deleted_user = Lwt_main.run (delete_user "michael") in 
   print_endline ("Received body\n" ^ deleted_user);
   let deleted_conversation = Lwt_main.run (delete_conversation "bob" "michael") in
   print_endline ("Received body\n" ^ deleted_conversation);
-  *)
+*)
