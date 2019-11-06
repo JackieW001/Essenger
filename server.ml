@@ -55,9 +55,21 @@ let delete_user user =
   (*Printf.printf "%s" ((Cohttp_lwt.Body.to_string:(Cohttp_lwt.Body.t->string)) data);*)
   body
 
+let set_num_msg user1 user2 num= 
+  let data = Cohttp_lwt.Body.of_string ("{\"num_msg\":\""^num^"\"}") in
+  Client.put ~body: data (Uri.of_string (firebase^"/Conversations/"^user1^"_to_"^user2^"/num_msg.json"))
+  >>= fun (resp,body) ->
+  let code = resp |> Response.status |> Code.code_of_status in
+  Printf.printf "Response code: %d\n" code;
+  Printf.printf "Headers: %s\n" (resp |> Response.headers |> Header.to_string);
+  body |> Cohttp_lwt.Body.to_string >|= fun body ->
+  Printf.printf "Body of length: %d\n" (String.length body);
+  (*Printf.printf "%s" ((Cohttp_lwt.Body.to_string:(Cohttp_lwt.Body.t->string)) data);*)
+  body
+
 let create_conversation user1 user2 =
-  let data = Cohttp_lwt.Body.of_string ("{\""^user1^"_to_"^user2^"\":\""^user1^"_to_"^user2^".json\"}") in 
-  Client.put ~body:data (Uri.of_string (firebase^"/Conversations/"^user1^"_to_"^user2^".json"))
+  let data = Cohttp_lwt.Body.of_string ("{\"message\":\"Fantastic!\"}") in 
+  Client.put ~body:data (Uri.of_string (firebase^"/Conversations/"^user1^"_to_"^user2^"/1.json"))
   >>= fun (resp,body) ->
   let code = resp |> Response.status |> Code.code_of_status in
   Printf.printf "Response code: %d\n" code;
@@ -89,6 +101,8 @@ let ()=
   print_endline ("Received body\n" ^ created_user);
   print_newline();
   let created_conversation = Lwt_main.run (create_conversation "bob" "michael") in
+  print_endline ("Received body\n" ^ created_conversation);
+  let update_msg_num = Lwt_main.run (set_num_msg "bob" "michael" "3") in
   print_endline ("Received body\n" ^ created_conversation);
 
 (*
