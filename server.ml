@@ -122,30 +122,13 @@ let delete_conversation user1 user2 =
 
 let ()=
   print_newline();
-  (*
-  print_endline(get_num_msgs "bob" "michael" |> string_of_int);
-  add_msg "bob" "michael" "Fantastic!";
+  (* TESTING ADDING NEW MESSAGES TO FIREBASE
+     print_endline(get_num_msgs "bob" "michael" |> string_of_int);
+     add_msg "bob" "michael" "Fantastic!";
   *)
-  (*
-  let retrieved_user_1 = Lwt_main.run (retrieve_user "bob") in
-  print_endline ("Received body\n" ^ retrieved_user_1);
-  print_newline();
-  let retrieved_user_2 = Lwt_main.run (retrieve_user "mike") in
-  print_endline ("Received body\n" ^ retrieved_user_2);
-  print_newline();
-  let created_user = Lwt_main.run (create_user "michael" "clarkson") in 
-  print_endline ("Received body\n" ^ created_user);
-  print_newline();
-  let created_conversation = Lwt_main.run (create_conversation "bob" "michael") in
-  print_endline ("Received body\n" ^ created_conversation);
-  let created_conversation = Lwt_main.run (create_conversation "bob" "michael") in
-  print_endline ("Received body\n" ^ created_conversation);
-  let update_msg_num = Lwt_main.run (set_num_msg "bob" "michael" "3") in
-  print_endline ("Received body\n" ^ created_conversation);
+  (*  TESTING DELETING A USER
+      let deleted_user = Lwt_main.run (delete_user "michael") in 
+      print_endline ("Received body\n" ^ deleted_user);
+      let deleted_conversation = Lwt_main.run (delete_conversation "bob" "michael") in
+      print_endline ("Received body\n" ^ deleted_conversation);
   *)
-(*
-  let deleted_user = Lwt_main.run (delete_user "michael") in 
-  print_endline ("Received body\n" ^ deleted_user);
-  let deleted_conversation = Lwt_main.run (delete_conversation "bob" "michael") in
-  print_endline ("Received body\n" ^ deleted_conversation);
-*)
