@@ -18,4 +18,4 @@ Essenger requires the following OCaml packages:
   cohttp-lwt-unix 
 
 Once you have downloaded the required packages, run `make essenger` to run
-Essenger. Have fun chatting!
+Essenger. Please ignore the warnings. Have fun chatting!
