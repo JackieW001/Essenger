@@ -13,6 +13,7 @@ let firebase = "https://"^proj_id^".firebaseio.com/"
 
 (******** USER FUNCTIONS ***********)
 
+(** [retrieve_user] retrieves data associated with user *)
 let retrieve_user user =
   Client.get (Uri.of_string (firebase^"/Users/"^user^".json")) 
   >>= fun (resp, body) ->
@@ -23,6 +24,8 @@ let retrieve_user user =
   Printf.printf "Body of length: %d\n" (String.length body);
   body
 
+(** [create_user] creates user with associated password [pass]. 
+    Currently private function to be implemented later *)
 let create_user user pass = 
   let data = Cohttp_lwt.Body.of_string ("{\"password\":\""^pass^"\"}") in 
   Client.put ~body:data (Uri.of_string (firebase^"/Users/"^user^".json"))
