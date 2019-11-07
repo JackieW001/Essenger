@@ -19,3 +19,12 @@ Essenger requires the following OCaml packages:
 
 Once you have downloaded the required packages, run `make essenger` to run
 Essenger. Please ignore the warnings. Have fun chatting!
+
+For MS1: 
+Right now the only pretty things we have to show is the user interface.
+When prompted, the username is master and the password is master. 
+We have a connection with Firebase, our online database that will be used
+to store converstations between two users, and are able to update and 
+retrieve information with it. However we have not yet integrated the backend
+server communication with our front end application. Feel free to poke around
+server.ml to see what we are doing on the backend side! 
