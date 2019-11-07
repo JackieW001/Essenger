@@ -24,16 +24,16 @@ type message = string
 (** [auth u] returns true if [u] is a registered username*)
 val auth : sender -> bool 
 
-(** [add_msg s r m] adds a message [m] to the database under the conversation
-    between sender [s] and recipient [r]*)
-val add_msg: sender -> recipient -> message -> bool 
-
 (** [convert_time t] converts time from GMT to specified timezone [t]. 
     Requires: timezones are in their capitalized abreviations. 
     E.g. EST, GMT, PST *)
 val convert_time: string -> timestamp
 
+(** [add_msg s r m] adds a message [m] to the database under the conversation
+    between sender [s] and recipient [r]*)
+val add_msg: sender -> recipient -> message -> unit
+
 (** [get_msg s r i] returns the last [i] messages between [s] and [r] as
     a JSON file. *)
-val get_msg: sender -> recipient -> int -> string 
+val get_msg: sender -> recipient -> int -> unit 
 

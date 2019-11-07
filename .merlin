@@ -2,6 +2,7 @@ B _build
 PKG oUnit
 PKG yojson
 PKG unix
+PKG str
 PKG cohttp 
 PKG lwt
 PKG ssl

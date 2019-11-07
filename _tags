@@ -1,2 +1,2 @@
 
-true: package(oUnit),package(ANSITerminal),package(yojson),package(unix),package(lwt), package(ssl), package(cohttp),package(cohttp-lwt-unix)
+true: package(oUnit),package(ANSITerminal),package(yojson),package(unix),package(str),package(lwt), package(ssl), package(cohttp),package(cohttp-lwt-unix)

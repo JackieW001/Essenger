@@ -2,6 +2,7 @@
 #require "yojson";;
 #require "ANSITerminal";;
 #require "unix";;
+#require "str";;
 #require "ssl";;
 #require "cohttp-lwt";;
 #require "cohttp-lwt-unix";;
