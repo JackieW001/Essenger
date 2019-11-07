@@ -43,5 +43,8 @@ clean:
 	ocamlbuild -clean -thread
 	rm -rf doc.public doc.private report search_src.zip bisect*.out
 
+zip:
+	zip essenger.zip *.ml* _tags Makefile
+
 essenger: build 
 	$(OCAMLBUILD) $(MAIN) && ./$(MAIN)
