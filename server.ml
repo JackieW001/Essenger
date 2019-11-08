@@ -52,13 +52,15 @@ let create_user user pass =
   Printf.printf "Body of length: %d\n" (String.length body);
   body
 
-(*
+(** [substring contains s1 s2] returns true if s2 is a substring in s1. *)
+let substring_contains s1 s2 = 
+  let regexp = Str.regexp_string s2 in
+  try ignore (Str.search_forward regexp s1 0); true
+  with Not_found -> false
+
 let user_exists user : bool = 
-    Client.get (Uri.of_string (firebase^"/Users/"^user^".json")) 
-    >>= fun (resp, body) -> 
-    let body_string = body |> Cohttp_lwt.Body.to_string in
-    String.contains (body_string 'null')
-*)
+  let (body_string:string) = retrieve_user user |> Lwt_main.run in 
+  not (substring_contains body_string "null")
 
 let auth user pass = 
   try
