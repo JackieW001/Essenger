@@ -1,0 +1,1 @@
+(** Represents the front-end user interface for Essenger. *)

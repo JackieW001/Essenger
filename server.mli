@@ -16,13 +16,21 @@
    - send the last five messages from a sender to a recipient
 *)
 
+(** [sender] represents the username of the sender of a message. *)
 type sender = string 
+
+(** [recipient] represents the username of the recipient of a message. *)
 type recipient = string 
+
+(** [timestamp] represents the time a message was sent. *)
 type timestamp = string
+
+(** [message] represents the message that is to be sent. *)
 type message = string
 
-(** [auth u] returns true if [u] is a registered username*)
-val auth : sender -> bool 
+(** [auth u] returns true if [u] is a registered username and [p] is the 
+    correct corresponding password. *)
+val auth : sender -> string -> bool 
 
 (** [convert_time t] converts time from GMT to specified timezone [t]. 
     Requires: timezones are in their capitalized abreviations. 
@@ -37,3 +45,10 @@ val add_msg: sender -> recipient -> message -> unit
     a JSON file. *)
 val get_msg: sender -> recipient -> int -> unit 
 
+(** [create_user] creates user with associated password [pass]. 
+    Currently private function to be implemented later *)
+val create_user: string -> string -> string Lwt.t
+
+
+(** [retrieve_user] retrieves data associated with user *)
+val retrieve_user: string -> string Lwt.t

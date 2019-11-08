@@ -1,4 +1,5 @@
 B _build
+PKG ANSITerminal
 PKG oUnit
 PKG yojson
 PKG unix
@@ -7,4 +8,4 @@ PKG cohttp
 PKG lwt
 PKG ssl
 PKG cohttp_lwt_unix
-PKG ANSITerminal
+PKG sha

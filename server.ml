@@ -1,21 +1,38 @@
-open Yojson
+open Yojson.Basic
+open Yojson.Basic.Util
 open Lwt
 open Cohttp
 open Cohttp_lwt_unix
+open Sha256
 (** This will be the file representing the server *)
 type sender = string 
 type recipient = string 
 type timestamp = string
 type message = string
 
+type user_info = 
+  {
+    password : string;
+  }
+
 let proj_id = "essenger-61fdc"
 let firebase = "https://"^proj_id^".firebaseio.com/"
 
+(*********** I/O FUNCTIONS *****************)
+
+(** [userjson_to_list j] returns a list representation of the json that 
+    represents a user. *)
+let userjson_to_record j =
+  let json = from_string j in
+  {
+    password = json |> member "password" |> to_string;
+  }
+
+
 (******** USER FUNCTIONS ***********)
 
-(** [retrieve_user] retrieves data associated with user *)
 let retrieve_user user =
-  Client.get (Uri.of_string (firebase^"/Users/"^user^".json")) 
+  Client.get  (Uri.of_string (firebase^"/Users/"^user^".json")) 
   >>= fun (resp, body) ->
   let code = resp |> Response.status |> Code.code_of_status in
   Printf.printf "Response code: %d\n" code;
@@ -24,8 +41,6 @@ let retrieve_user user =
   Printf.printf "Body of length: %d\n" (String.length body);
   body
 
-(** [create_user] creates user with associated password [pass]. 
-    Currently private function to be implemented later *)
 let create_user user pass = 
   let data = Cohttp_lwt.Body.of_string ("{\"password\":\""^pass^"\"}") in 
   Client.put ~body:data (Uri.of_string (firebase^"/Users/"^user^".json"))
@@ -37,8 +52,23 @@ let create_user user pass =
   Printf.printf "Body of length: %d\n" (String.length body);
   body
 
-let auth sender = 
-  failwith "u"
+(*
+let user_exists user : bool = 
+    Client.get (Uri.of_string (firebase^"/Users/"^user^".json")) 
+    >>= fun (resp, body) -> 
+    let body_string = body |> Cohttp_lwt.Body.to_string in
+    String.contains (body_string 'null')
+*)
+
+let auth user pass = 
+  try
+    let user_info = retrieve_user user |> Lwt_main.run in
+    let init_ctx = init () in 
+    update_string init_ctx pass; 
+    let hashed_password = to_hex (finalize init_ctx) in
+    (userjson_to_record user_info).password = hashed_password 
+  with
+  | Yojson.Basic.Util.Type_error (a,b) -> false
 
 let convert_time timezone = 
   failwith "u"

@@ -6,6 +6,7 @@
 #require "ssl";;
 #require "cohttp-lwt";;
 #require "cohttp-lwt-unix";;
+#require "sha";;
 #directory "_build";;
 #load "command.cmo";;
 #load "server.cmo";;
