@@ -131,11 +131,11 @@ let add_msg user1 user2 msg =
   let data = Cohttp_lwt.Body.of_string ("{\"sender\":\""^user1^
                                         "\",\"recipient\":\""^user2^
                                         "\",\"message\":\""^msg^"\"}") in 
-  let _ = Client.put 
-      ~body:data (Uri.of_string (firebase^"/Conversations/"^(fst users)^
-                                 "_to_"^(snd users)^"/"^next_msg_num^".json"))
-          |> return_body |> Lwt_main.run;
-    inc_num_msgs user1 user2 in 
+  let _ = Client.put ~body:data 
+      (Uri.of_string (firebase^"/Conversations/"^(fst users)^
+                      "_to_"^(snd users)^"/"^next_msg_num^".json"))
+          |> return_body |> Lwt_main.run in 
+  inc_num_msgs user1 user2; 
   ()
 
 let get_msg user1 user2 i = 
@@ -148,18 +148,6 @@ let get_msg user1 user2 i =
   if (substring_contains data "null") then failwith "message not found" else 
     print_endline data;
   ()
-
-(** [delete_conversation] deletes a conversation *)
-let delete_conversation user1 user2 = 
-  Client.delete (Uri.of_string (firebase^"/Conversations/"^user1^"_to_"^user2^".json"))
-  >>= fun (resp, body) ->
-  let code = resp |> Response.status |> Code.code_of_status in
-  Printf.printf "Response code: %d\n" code;
-  Printf.printf "Headers: %s\n" (resp |> Response.headers |> Header.to_string);
-  body |> Cohttp_lwt.Body.to_string >|= fun body ->
-  Printf.printf "Body of length: %d\n" (String.length body);
-  (*Printf.printf "%s" ((Cohttp_lwt.Body.to_string:(Cohttp_lwt.Body.t->string)) data);*)
-  body
 
 (* Below is used for testing*)
 
