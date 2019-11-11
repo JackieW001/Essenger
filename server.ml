@@ -168,12 +168,11 @@ let add_msg user1 user2 msg =
   inc_num_msgs user1 user2; 
   ()
 
-let get_msg sender recipient i = ()
-
 (** [create_conversation] creates a new conversation *)
 let create_conversation user1 user2 =
+  let users = sort_users user1 user2 in
   let data = Cohttp_lwt.Body.of_string ("{\"message\":\"Fantastic!\"}") in 
-  Client.put ~body:data (Uri.of_string (firebase^"/Conversations/"^user1^"_to_"^user2^"/1.json"))
+  Client.put ~body:data (Uri.of_string (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^"/1.json"))
   >>= fun (resp,body) ->
   let code = resp |> Response.status |> Code.code_of_status in
   Printf.printf "Response code: %d\n" code;
@@ -184,14 +183,15 @@ let create_conversation user1 user2 =
   body
 
 let get_conversation user1 user2 = 
-  Client.get (Uri.of_string (firebase^"/Conversations/"^user1^"_to_"^user2^".json"))
+  let users = sort_users user1 user2 in
+  Client.get (Uri.of_string (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^".json"))
   >>= fun(resp,body) -> 
   body |> Cohttp_lwt.Body.to_string >|= fun body -> body 
 
-
 (** [delete_conversation] deletes a conversation *)
 let delete_conversation user1 user2 = 
-  Client.delete (Uri.of_string (firebase^"/Conversations/"^user1^"_to_"^user2^".json"))
+  let users = sort_users user1 user2 in 
+  Client.delete (Uri.of_string (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^".json"))
   >>= fun (resp, body) ->
   let code = resp |> Response.status |> Code.code_of_status in
   Printf.printf "Response code: %d\n" code;
@@ -200,6 +200,7 @@ let delete_conversation user1 user2 =
   Printf.printf "Body of length: %d\n" (String.length body);
   (*Printf.printf "%s" ((Cohttp_lwt.Body.to_string:(Cohttp_lwt.Body.t->string)) data);*)
   body
+
 let get_msg user1 user2 i = 
   let users = sort_users user1 user2 in 
   let data = 
