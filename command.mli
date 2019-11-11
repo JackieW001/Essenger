@@ -14,10 +14,11 @@ type username = string
     [Get user] returns the message history of the current user with [user].
     [Send (user,msg)] sends [message] to [user].
     [Help] returns the help menu.
+    [Friends] returns a list of users the current user has conversations with. 
     [Logout] exits Essenger. 
 
     Future Commands:
-    [Friends] returns a list of users the current user has conversations with.    
+    [Multi]
 *)
 type command = 
   | Get of username 
