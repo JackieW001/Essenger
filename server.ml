@@ -15,19 +15,49 @@ type user_info =
     password : string;
   }
 
+type conv_info = 
+  {
+    num_msgs : int;
+    conversation : (sender * recipient * message) list;
+  }
+
 let proj_id = "essenger-61fdc"
 let firebase = "https://"^proj_id^".firebaseio.com/"
 
 (*********** I/O FUNCTIONS *****************)
 
-(** [userjson_to_list j] returns a list representation of the json that 
-    represents a user. *)
+(** [userjson_to_list j] returns a record representation of the json that 
+    represents a user. [j] must be a string json representation that represents
+    a user in Essenger. *)
 let userjson_to_record j =
   let json = from_string j in
   {
     password = json |> member "password" |> to_string;
   }
 
+let build_conv_list j = 
+  let num_msgs = j |> member "num_msg" |> member "num_msg" |> to_string
+                 |> int_of_string  in 
+  let acc = ref [] in
+  for i = 1 to num_msgs do 
+    print_endline ("starting num: "^(string_of_int i));
+    acc := ((j |> member (string_of_int i) |> member "sender" |> to_string),
+            (j |> member (string_of_int i)|> member "recipient" |> to_string),
+            (j |> member (string_of_int i) |> member "message" |> to_string)) 
+           :: !acc;
+  done;
+  !acc
+
+(** [convjson_to_record j] returns a record representation of the json that 
+    represents a conversation. [j] must be a string json representation that 
+    represents a conversation in Essenger. *)
+let convjson_to_record j = 
+  let json = from_string (j |> Lwt_main.run) in 
+  {
+    num_msgs = json |> member "num_msg" |> member "num_msg" |> to_string 
+               |> int_of_string;
+    conversation = build_conv_list json;
+  }
 
 (******** USER FUNCTIONS ***********)
 
@@ -137,6 +167,12 @@ let create_conversation user1 user2 =
   Printf.printf "Body of length: %d\n" (String.length body);
   (*Printf.printf "%s" ((Cohttp_lwt.Body.to_string:(Cohttp_lwt.Body.t->string)) data);*)
   body
+
+let get_conversation user1 user2 = 
+  Client.get (Uri.of_string (firebase^"/Conversations/"^user1^"_to_"^user2^".json"))
+  >>= fun(resp,body) -> 
+  body |> Cohttp_lwt.Body.to_string >|= fun body -> body 
+
 
 (** [delete_conversation] deletes a conversation *)
 let delete_conversation user1 user2 = 
