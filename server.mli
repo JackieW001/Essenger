@@ -55,3 +55,23 @@ val retrieve_user: string -> string Lwt.t
 (** [user_exists user] returns true if [user] is has a username and password
     in Essenger, false otherwise. *)
 val user_exists: string -> bool
+
+(**********************Conversation Functions***********************)
+
+(** [create_conversation u1 u2 m] creates a new conversation between [u1] and
+    [u2] with message m. *)
+val create_conversation : string -> string -> string -> unit
+
+(** [get_conversation u1 u2] returns a json string representation of an existing
+    conversation between [u1] and [u2]. Returns "null" if the conversation does
+    not exist. *)
+val get_conversation : string -> string -> string Lwt.t
+
+(** [delete_conversation u1 u2] deletes a conversation between [u1] and [u2].
+    Does nothing if conversation does not exist.*)
+val delete_conversation : string -> string -> unit
+
+(** [conversation_exists u1 u2] returns true if [u1] and [u2] have a 
+    conversation in the database, false otherwise. *)
+val conversation_exists : string -> string -> bool
+

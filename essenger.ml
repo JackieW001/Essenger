@@ -2,6 +2,15 @@ open Command
 open Server 
 open Sha256
 
+(* Helper Functions *)
+
+(** [substring contains s1 s2] returns true if s2 is a substring in s1. *)
+let substring_contains s1 s2 = 
+  let regexp = Str.regexp_string s2 in
+  try ignore (Str.search_forward regexp s1 0); true
+  with Not_found -> false
+
+
 (** [main] is the main interface for Essenger. It takes parsed commands from 
     the command module and processes them to perform the proper function as 
     specified by the command. *)
@@ -17,8 +26,10 @@ let rec main current_user () =
     | Send (r,m) -> (* Send message to server *) 
       ANSITerminal.(print_string [cyan] 
                       ("Recipient: " ^ r ^ "\nMessage: " ^ m));
-      ANSITerminal.(print_string [red] 
-                      ("\nUnimplemented."));
+      if Server.conversation_exists current_user r then
+        Server.add_msg current_user r m
+      else 
+        Server.create_conversation current_user r m;
       main current_user ()
     | Get r -> (* Get message history *) 
       ANSITerminal.(print_string [cyan] 
