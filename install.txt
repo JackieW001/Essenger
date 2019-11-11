@@ -10,6 +10,7 @@ Essenger requires the following OCaml packages:
   yojson
   ANSITerminal
   unix
+  sha
   str
   ssl
   ssl_lwt
