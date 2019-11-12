@@ -19,6 +19,7 @@ type username = string
 
     Future Commands:
     [Multi]
+    [Find] find users with a username/real name
 *)
 type command = 
   | Get of username 
