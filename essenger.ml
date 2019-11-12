@@ -4,13 +4,6 @@ open Sha256
 
 (* Helper Functions *)
 
-(** [substring contains s1 s2] returns true if s2 is a substring in s1. *)
-let substring_contains s1 s2 = 
-  let regexp = Str.regexp_string s2 in
-  try ignore (Str.search_forward regexp s1 0); true
-  with Not_found -> false
-
-
 (** [main] is the main interface for Essenger. It takes parsed commands from 
     the command module and processes them to perform the proper function as 
     specified by the command. *)
@@ -24,13 +17,18 @@ let rec main current_user () =
     let command = read_line () |> Command.parse in
     match command with
     | Send (r,m) -> (* Send message to server *) 
-      ANSITerminal.(print_string [cyan] 
-                      ("Recipient: " ^ r ^ "\nMessage: " ^ m));
-      if Server.conversation_exists current_user r then
-        Server.add_msg current_user r m
-      else 
-        Server.create_conversation current_user r m;
-      main current_user ()
+      if (Server.user_exists r) then (
+        ANSITerminal.(print_string [cyan] 
+                        ("Recipient: " ^ r ^ "\nMessage: " ^ m));
+        Server.add_msg current_user r m;
+        main current_user ()
+      )
+      else (
+        ANSITerminal.(print_string [red]
+                        ("\nUser \""^r^"\" does not exist."^ 
+                         " Check if the username is correct."));
+        main current_user ()
+      )
     | Get r -> (* Get message history *) 
       ANSITerminal.(print_string [cyan] 
                       ("Getting message history with: " ^ r));
@@ -92,7 +90,7 @@ let rec login () =
     login ())
   else(
     if response = "n" then(
-      ANSITerminal.(print_string [white] 
+      ANSITerminal.(print_string [cyan] 
                       "\nPlease enter a username: ");
       let created_username = String.trim (read_line ()) in
       if Server.user_exists created_username then(
@@ -101,13 +99,13 @@ let rec login () =
         login ()
       )
       else (
-        ANSITerminal.(print_string [white]
+        ANSITerminal.(print_string [cyan]
                         "Please enter a password: ");
         let created_password = String.trim(read_line ()) in
         let init_ctx = init () in 
         update_string init_ctx created_password; 
         let hashed_password = to_hex (finalize init_ctx) in
-        Server.create_user created_username hashed_password |> Lwt_main.run;
+        Server.create_user created_username hashed_password;
         (ANSITerminal.(print_string [green] 
                          ("\n"^created_username^", welcome to Essenger.")));
         main created_username ())
