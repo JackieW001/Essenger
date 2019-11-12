@@ -59,10 +59,6 @@ val user_exists: string -> bool
 
 (**********************Conversation Functions***********************)
 
-(** [create_conversation u1 u2 m] creates a new conversation between [u1] and
-    [u2] with message m. *)
-val create_conversation : string -> string -> string -> unit
-
 (** [get_conversation u1 u2] returns a json string representation of an existing
     conversation between [u1] and [u2]. Returns "null" if the conversation does
     not exist. *)

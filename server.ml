@@ -69,7 +69,9 @@ let retrieve_user user =
 
 let create_user user pass = 
   let data = Cohttp_lwt.Body.of_string ("{\"password\":\""^pass^"\"}") in 
-  Client.put ~body:data (Uri.of_string (firebase^"/Users/"^user^".json"));
+  let _ = 
+    Client.put ~body:data (
+      Uri.of_string (firebase^"/Users/"^user^".json")) in
   ()
 
 (** [substring contains s1 s2] returns true if s2 is a substring in s1. *)
@@ -139,9 +141,10 @@ let inc_num_msgs user1 user2 =
   let users = sort_users user1 user2 in  
   let new_num = ((get_num_msgs user1 user2)+ 1) |> string_of_int in 
   let data = Cohttp_lwt.Body.of_string ("{\"num_msg\":\""^new_num^"\"}") in 
-  Client.put ~body: data 
-    (Uri.of_string (firebase^"/Conversations/"^(fst users)^
-                    "_to_"^(snd users)^"/num_msg.json"));
+  let _ = Client.put ~body: data 
+      (Uri.of_string (firebase^"/Conversations/"^(fst users)^
+                      "_to_"^(snd users)^"/num_msg.json")) 
+          |> return_body |> Lwt_main.run in 
   ()
 
 let add_msg user1 user2 msg =
@@ -157,18 +160,6 @@ let add_msg user1 user2 msg =
   inc_num_msgs user1 user2; 
   ()
 
-(* This code is unneccessary, add_msg does the same but more
-   let create_conversation user1 user2 msg =
-   let users = sort_users user1 user2 in
-   let num_data = Cohttp_lwt.Body.of_string("{\"num_msg\":\"1\"}") in 
-   Client.put ~body:num_data (Uri.of_string (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^"/num_msg.json"));
-   let data = Cohttp_lwt.Body.of_string ("{\"sender\":\""^user1^
-                                        "\",\"recipient\":\""^user2^
-                                        "\",\"message\":\""^msg^"\"}") in
-   Client.put ~body:data (Uri.of_string (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^"/1.json"));
-   ()
-*)
-
 let get_conversation user1 user2 = 
   let users = sort_users user1 user2 in
   Client.get (Uri.of_string (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^".json"))
@@ -177,7 +168,8 @@ let get_conversation user1 user2 =
 
 let delete_conversation user1 user2 = 
   let users = sort_users user1 user2 in 
-  Client.delete (Uri.of_string (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^".json"));
+  let _ = Client.delete 
+      (Uri.of_string (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^".json")) in
   ()
 
 let conversation_exists user1 user2 =
@@ -191,15 +183,17 @@ let get_msg user1 user2 i =
       (Uri.of_string (firebase^"/Conversations/"^(fst users)^
                       "_to_"^(snd users)^"/"^(string_of_int i)^".json")) 
     |> return_body |> Lwt_main.run in
-  if (substring_contains data "null") then failwith "message not found" else 
+  if (substring_contains data "null") then failwith "Message not found" else 
     data
 
 (* Below is used for testing *)
 
-let ()= ()
-(* TESTING ADDING NEW MESSAGES TO FIREBASE *)
-(* print_endline(get_num_msgs "bob" "michael" |> string_of_int); *)
-(* get_msg "jackie" "banpreet" 1; *)
+let ()= 
+  (* TESTING ADDING NEW MESSAGES TO FIREBASE *)
+  (* print_endline(get_num_msgs "bob" "michael" |> string_of_int); *)
+  (*inc_num_msgs "jackie" "banpreet" *)
+  add_msg "jackie" "banpreet" "bing boing!"
+(*print_endline((get_num_msgs "jackie" "banpreet") |> string_of_int);*)
 (*  TESTING DELETING A USER
     let deleted_user = Lwt_main.run (delete_user "michael") in 
     print_endline ("Received body\n" ^ deleted_user);
