@@ -108,7 +108,7 @@ let rec login () =
         let init_ctx = init () in 
         update_string init_ctx created_password; 
         let hashed_password = to_hex (finalize init_ctx) in
-        Server.create_user created_username hashed_password;
+        Server.create_user created_username hashed_password |> Lwt_main.run;
         (ANSITerminal.(print_string [green] 
                          ("\n"^created_username^", welcome to Essenger.")));
         main created_username ())

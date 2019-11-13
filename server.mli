@@ -48,7 +48,7 @@ val get_msg: sender -> recipient -> int -> string
 
 (** [create_user] creates user with associated password [pass]. 
     Currently private function to be implemented later *)
-val create_user: string -> string -> unit
+val create_user: string -> string -> string Lwt.t
 
 (** [retrieve_user] retrieves data associated with user *)
 val retrieve_user: string -> string Lwt.t
