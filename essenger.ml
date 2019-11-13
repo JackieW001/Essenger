@@ -4,6 +4,9 @@ open Sha256
 
 (* Helper Functions *)
 
+(** [replace_spaces s] replaces all whitespaces in [s] with '_'. *)
+let replace_spaces = Str.global_replace (Str.regexp " ") "_"
+
 (** [main] is the main interface for Essenger. It takes parsed commands from 
     the command module and processes them to perform the proper function as 
     specified by the command. *)
@@ -75,7 +78,7 @@ let rec login () =
   let response = read_line () in
   if response = "y" then (
     print_string "\nEnter your username: ";
-    let username_input = String.trim(read_line ()) in
+    let username_input = replace_spaces (String.trim(read_line ())) in
     print_string "Enter your password: ";
     let password_input = String.trim(read_line ()) in
     (* 
@@ -92,7 +95,7 @@ let rec login () =
     if response = "n" then(
       ANSITerminal.(print_string [cyan] 
                       "\nPlease enter a username: ");
-      let created_username = String.trim (read_line ()) in
+      let created_username = replace_spaces(String.trim (read_line ())) in
       if Server.user_exists created_username then(
         ANSITerminal.(print_string [red]
                         "\nUsername already exists. Please try again.\n");
