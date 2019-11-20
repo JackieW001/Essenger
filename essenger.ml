@@ -79,8 +79,11 @@ let rec login () =
   ANSITerminal.(print_string [cyan] 
                   "\nWelcome to Essenger, the Better Messenger.\n");
   ANSITerminal.(print_string [cyan] 
-                  "\nAre you a returning user? [y/n]");
-  let response = read_line () in
+                  "\nAre you a returning user? [y/n/quit]");
+  let response = String.trim (read_line ()) in
+  if response = "quit" then 
+    (ANSITerminal.(erase Screen);exit 0)
+  else 
   if response = "y" then (
     print_string "\nEnter your username: ";
     let username_input = replace_spaces (String.trim(read_line ())) in
@@ -90,7 +93,8 @@ let rec login () =
     if authenticated, then main, else try again
   *)
     if Server.auth username_input password_input then 
-      (ANSITerminal.(print_string [green] 
+      (ANSITerminal.(erase Screen);
+       ANSITerminal.(print_string [green] 
                        ("\n Login Successful."));
        main username_input ())
     else
@@ -114,9 +118,10 @@ let rec login () =
          let hashed_password = to_hex (finalize init_ctx) in
          let _ = Server.create_user created_username hashed_password 
                  |> Lwt_main.run in 
+         ANSITerminal.(erase Screen);
          (ANSITerminal.(print_string [green] 
-                          ("\n Hi "^created_username^", welcome to Essenger.")))
-         ;
+                          ("\n Hi "^created_username^", welcome to Essenger."))
+         );
          main created_username ())
       )
     else(
