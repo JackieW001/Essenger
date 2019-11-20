@@ -162,15 +162,19 @@ let add_msg user1 user2 msg =
   ()
 
 let get_conversation user1 user2 = 
-  let users = sort_users user1 user2 in
-  Client.get (Uri.of_string (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^".json"))
+  let users = sort_users user1 user2 in 
+  (* let head = Cohttp.Header.of_list [("print","silent")] in *)
+  Client.get (* ~headers:head *) (Uri.of_string (firebase^"/Conversations/"^
+                                                 (fst users)^"_to_"^(snd users)^
+                                                 ".json"))
   >>= fun(resp,body) -> 
   body |> Cohttp_lwt.Body.to_string >|= fun body -> body 
 
 let delete_conversation user1 user2 = 
   let users = sort_users user1 user2 in 
   let _ = Client.delete 
-      (Uri.of_string (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^".json")) in
+      (Uri.of_string (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^
+                      ".json")) in
   ()
 
 let conversation_exists user1 user2 =
@@ -198,6 +202,7 @@ let ()=
 (*  TESTING DELETING A USER
     let deleted_user = Lwt_main.run (delete_user "michael") in 
     print_endline ("Received body\n" ^ deleted_user);
-    let deleted_conversation = Lwt_main.run (delete_conversation "bob" "michael") in
+    let deleted_conversation = 
+    Lwt_main.run (delete_conversation "bob" "michael") in
     print_endline ("Received body\n" ^ deleted_conversation);
 *)

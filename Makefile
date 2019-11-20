@@ -44,7 +44,7 @@ clean:
 	rm -rf doc.public doc.private report search_src.zip bisect*.out
 
 zip:
-	zip essenger.zip *.ml* _tags Makefile
+	zip essenger.zip *.ml* *install.txt* _tags Makefile
 
 essenger: build 
 	$(OCAMLBUILD) $(MAIN) && ./$(MAIN)
