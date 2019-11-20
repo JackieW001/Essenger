@@ -41,7 +41,7 @@ docs-private: build
 
 clean:
 	ocamlbuild -clean -thread
-	rm -rf doc.public doc.private report search_src.zip bisect*.out
+	rm -rf doc.public doc.private 
 
 zip:
 	zip essenger.zip *.ml* *install.txt* _tags Makefile

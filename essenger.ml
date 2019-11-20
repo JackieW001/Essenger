@@ -39,7 +39,7 @@ let rec main current_user () =
           Server.get_conversation_history current_user r 5; 
           main current_user ()
         with
-        | Failure "No message history" -> 
+        | Failure x -> 
           ANSITerminal.(print_string [red]
                           ("\nYou have no message history with " ^ r));
           main current_user ())
@@ -97,28 +97,28 @@ let rec login () =
       ANSITerminal.(print_string [red] "\n Incorrect login, try again.");
     login ())
   else(
-    if response = "n" then(
-      ANSITerminal.(print_string [cyan] 
-                      "\nPlease enter a username: ");
-      let created_username = replace_spaces(String.trim (read_line ())) in
-      if Server.user_exists created_username then(
-        ANSITerminal.(print_string [red]
-                        "\nUsername already exists. Please try again.\n");
-        login ()
+    if response = "n" then
+      (ANSITerminal.(print_string [cyan] 
+                       "\nPlease enter a username: ");
+       let created_username = replace_spaces(String.trim (read_line ())) in
+       if Server.user_exists created_username then
+         (ANSITerminal.(print_string [red]
+                          "\nUsername already exists. Please try again.\n");
+          login ())
+       else (
+         ANSITerminal.(print_string [cyan]
+                         "Please enter a password: ");
+         let created_password = String.trim(read_line ()) in
+         let init_ctx = init () in 
+         update_string init_ctx created_password; 
+         let hashed_password = to_hex (finalize init_ctx) in
+         let _ = Server.create_user created_username hashed_password 
+                 |> Lwt_main.run in 
+         (ANSITerminal.(print_string [green] 
+                          ("\n Hi "^created_username^", welcome to Essenger.")))
+         ;
+         main created_username ())
       )
-      else (
-        ANSITerminal.(print_string [cyan]
-                        "Please enter a password: ");
-        let created_password = String.trim(read_line ()) in
-        let init_ctx = init () in 
-        update_string init_ctx created_password; 
-        let hashed_password = to_hex (finalize init_ctx) in
-        let _ = Server.create_user created_username hashed_password 
-                |> Lwt_main.run in 
-        (ANSITerminal.(print_string [green] 
-                         ("\n Hi "^created_username^", welcome to Essenger.")));
-        main created_username ())
-    )
     else(
       ANSITerminal.(print_string [red] ("\nUnrecognized. Please try again."));
       login ()
