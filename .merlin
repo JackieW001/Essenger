@@ -6,6 +6,7 @@ PKG unix
 PKG str
 PKG cohttp 
 PKG lwt
+PKG lwt_main
 PKG ssl
 PKG cohttp_lwt_unix
 PKG sha

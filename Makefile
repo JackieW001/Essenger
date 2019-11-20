@@ -5,7 +5,7 @@ MLIS=$(MODULES:=.mli)
 TEST=test.byte
 MAIN=essenger.byte
 OCAMLBUILD=ocamlbuild -use-ocamlfind 
-PKGS=unix,oUnit,str,lwt,cohttp,cohttp-lwt-unix
+PKGS=unix,oUnit,str,lwt,cohttp,cohttp-lwt-unix,yojson,sha,ANSITerminal
 
 default: build
 	utop
