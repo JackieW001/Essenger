@@ -59,6 +59,40 @@ let convjson_to_record j =
     conversation = build_conv_list json;
   }
 
+let build_msg_history j s = 
+  let num_msgs = j |> member "num_msg" |> member "num_msg" |> to_string
+                 |> int_of_string  in 
+  let acc = ref [] in
+  let start = if (num_msgs <= s) then 1 else num_msgs-s in
+  for i = start to num_msgs do 
+    acc := ((j |> member (string_of_int i) |> member "sender" |> to_string),
+            (j |> member (string_of_int i)|> member "recipient" |> to_string),
+            (j |> member (string_of_int i) |> member "message" |> to_string)) 
+           :: !acc;
+  done;
+  !acc
+
+let histjson_to_record j s = 
+  let json = from_string (j |> Lwt_main.run) in 
+  {
+    num_msgs = json |> member "num_msg" |> member "num_msg" |> to_string 
+               |> int_of_string;
+    conversation = build_msg_history json s;
+  }
+
+
+let print_conv_info info = 
+  let msgs = List.rev info.conversation in 
+  print_endline "\n";
+  let rec print_msgs msgs = 
+    match msgs with 
+    | [] -> print_endline ""
+    | (s,_,m)::t -> print_endline (s ^ ": " ^ m ^ "\n");
+      print_msgs t
+  in 
+  print_msgs msgs;
+  print_endline "----------------------------------"
+
 (******** USER FUNCTIONS ***********)
 
 let retrieve_user user =
@@ -161,14 +195,33 @@ let add_msg user1 user2 msg =
   inc_num_msgs user1 user2; 
   ()
 
-let get_conversation user1 user2 = 
+let get_msg user1 user2 i = 
   let users = sort_users user1 user2 in 
-  (* let head = Cohttp.Header.of_list [("print","silent")] in *)
-  Client.get (* ~headers:head *) (Uri.of_string (firebase^"/Conversations/"^
-                                                 (fst users)^"_to_"^(snd users)^
-                                                 ".json"))
-  >>= fun(resp,body) -> 
-  body |> Cohttp_lwt.Body.to_string >|= fun body -> body 
+  let data = 
+    Client.get 
+      (Uri.of_string (firebase^"/Conversations/"^(fst users)^
+                      "_to_"^(snd users)^"/"^(string_of_int i)^".json")) 
+    |> return_body |> Lwt_main.run in
+  if (substring_contains data "null") then failwith "Message not found" else 
+    data
+
+let get_conversation_history user1 user2 i = 
+  let users = sort_users user1 user2 in
+  let request = 
+    Client.get 
+      (Uri.of_string 
+         (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^".json")) 
+    |> return_body in 
+  let conv_info = histjson_to_record request i in 
+  print_conv_info conv_info; 
+  ()
+
+let get_conversation user1 user2 = 
+  let users = sort_users user1 user2 in
+  Client.get 
+    (Uri.of_string 
+       (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^".json")) 
+  |> return_body 
 
 let delete_conversation user1 user2 = 
   let users = sort_users user1 user2 in 
@@ -181,23 +234,13 @@ let conversation_exists user1 user2 =
   let (body_string:string) = get_conversation user1 user2 |> Lwt_main.run in 
   not (substring_contains body_string "null")
 
-let get_msg user1 user2 i = 
-  let users = sort_users user1 user2 in 
-  let data = 
-    Client.get 
-      (Uri.of_string (firebase^"/Conversations/"^(fst users)^
-                      "_to_"^(snd users)^"/"^(string_of_int i)^".json")) 
-    |> return_body |> Lwt_main.run in
-  if (substring_contains data "null") then failwith "Message not found" else 
-    data
-
 (* Below is used for testing *)
 
-let ()= 
-  (* TESTING ADDING NEW MESSAGES TO FIREBASE *)
-  (* print_endline(get_num_msgs "bob" "michael" |> string_of_int); *)
-  (*inc_num_msgs "jackie" "banpreet" *)
-  add_msg "jackie" "banpreet" "bing boing!"
+let ()= ()
+(* get_conversation_history "jackie" "ashneel" 5; *)
+(* TESTING ADDING NEW MESSAGES TO FIREBASE *)
+(* print_endline(get_num_msgs "bob" "michael" |> string_of_int); *)
+(*inc_num_msgs "jackie" "banpreet" *)
 (*print_endline((get_num_msgs "jackie" "banpreet") |> string_of_int);*)
 (*  TESTING DELETING A USER
     let deleted_user = Lwt_main.run (delete_user "michael") in 

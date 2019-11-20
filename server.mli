@@ -42,9 +42,9 @@ val convert_time: string -> timestamp
     [s] and [r] if the conversation does not exist. *)
 val add_msg: sender -> recipient -> message -> unit
 
-(** [get_msg s r i] returns the last [i] messages between [s] and [r] as
+(** [get_msg s r i] prints the last [i] messages between [s] and [r] as
     a JSON file. *)
-val get_msg: sender -> recipient -> int -> string
+val get_conversation_history: sender -> recipient -> int -> unit
 
 (** [create_user] creates user with associated password [pass]. 
     Currently private function to be implemented later *)

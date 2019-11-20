@@ -35,8 +35,9 @@ let rec main current_user () =
     | Get r -> (* Get message history *) 
       ANSITerminal.(print_string [cyan] 
                       ("Getting message history with: " ^ r));
-      ANSITerminal.(print_string [red] 
-                      ("\nUnimplemented."));
+      Server.get_conversation_history current_user r 5; 
+      (*ANSITerminal.(print_string [red] 
+                      ("\nUnimplemented.")); *)
       main current_user ()
     | Friends -> (* Get List of friends *) 
       ANSITerminal.(print_string [cyan] 
@@ -108,7 +109,8 @@ let rec login () =
         let init_ctx = init () in 
         update_string init_ctx created_password; 
         let hashed_password = to_hex (finalize init_ctx) in
-        Server.create_user created_username hashed_password |> Lwt_main.run;
+        let _ = Server.create_user created_username hashed_password 
+                |> Lwt_main.run in 
         (ANSITerminal.(print_string [green] 
                          ("\n"^created_username^", welcome to Essenger.")));
         main created_username ())
