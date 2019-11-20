@@ -73,7 +73,7 @@ let build_msg_history j s =
   !acc
 
 let histjson_to_record j s = 
-  let json = from_string (j |> Lwt_main.run) in 
+  let json = from_string j in 
   {
     num_msgs = json |> member "num_msg" |> member "num_msg" |> to_string 
                |> int_of_string;
@@ -211,10 +211,11 @@ let get_conversation_history user1 user2 i =
     Client.get 
       (Uri.of_string 
          (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^".json")) 
-    |> return_body in 
-  let conv_info = histjson_to_record request i in 
-  print_conv_info conv_info; 
-  ()
+    |> return_body |> Lwt_main.run in 
+  if (substring_contains request "null") then failwith "No message history" else
+    let conv_info = histjson_to_record request i in 
+    print_conv_info conv_info; 
+    ()
 
 let get_conversation user1 user2 = 
   let users = sort_users user1 user2 in

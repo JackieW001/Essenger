@@ -32,13 +32,17 @@ let rec main current_user () =
                          " Check if the username is correct."));
         main current_user ()
       )
-    | Get r -> (* Get message history *) 
-      ANSITerminal.(print_string [cyan] 
-                      ("Getting message history with: " ^ r));
-      Server.get_conversation_history current_user r 5; 
-      (*ANSITerminal.(print_string [red] 
-                      ("\nUnimplemented.")); *)
-      main current_user ()
+    | Get r ->( (* Get message history *) 
+        try
+          ANSITerminal.(print_string [cyan] 
+                          ("Getting message history with: " ^ r ^ "\n"));
+          Server.get_conversation_history current_user r 5; 
+          main current_user ()
+        with
+        | Failure "No message history" -> 
+          ANSITerminal.(print_string [red]
+                          ("\nYou have no message history with " ^ r));
+          main current_user ())
     | Friends -> (* Get List of friends *) 
       ANSITerminal.(print_string [cyan] 
                       ("Getting friends list."));
@@ -87,10 +91,10 @@ let rec login () =
   *)
     if Server.auth username_input password_input then 
       (ANSITerminal.(print_string [green] 
-                       ("\n"^username_input^", welcome to Essenger."));
+                       ("\n Login Successful."));
        main username_input ())
     else
-      ANSITerminal.(print_string [red] "\nIncorrect login, try again.");
+      ANSITerminal.(print_string [red] "\n Incorrect login, try again.");
     login ())
   else(
     if response = "n" then(
@@ -112,7 +116,7 @@ let rec login () =
         let _ = Server.create_user created_username hashed_password 
                 |> Lwt_main.run in 
         (ANSITerminal.(print_string [green] 
-                         ("\n"^created_username^", welcome to Essenger.")));
+                         ("\n Hi "^created_username^", welcome to Essenger.")));
         main created_username ())
     )
     else(
