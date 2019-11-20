@@ -37,15 +37,6 @@ val auth : sender -> string -> bool
     E.g. EST, GMT, PST *)
 val convert_time: string -> timestamp
 
-(** [add_msg s r m] adds a message [m] to the database under the conversation
-    between sender [s] and recipient [r]. Creates a new conversation between 
-    [s] and [r] if the conversation does not exist. *)
-val add_msg: sender -> recipient -> message -> unit
-
-(** [get_msg s r i] prints the last [i] messages between [s] and [r] as
-    a JSON file. *)
-val get_conversation_history: sender -> recipient -> int -> unit
-
 (** [create_user] creates user with associated password [pass]. 
     Currently private function to be implemented later *)
 val create_user: string -> string -> string Lwt.t
@@ -58,6 +49,15 @@ val retrieve_user: string -> string Lwt.t
 val user_exists: string -> bool
 
 (**********************Conversation Functions***********************)
+
+(** [add_msg s r m] adds a message [m] to the database under the conversation
+    between sender [s] and recipient [r]. Creates a new conversation between 
+    [s] and [r] if the conversation does not exist. *)
+val add_msg: sender -> recipient -> message -> unit
+
+(** [get_msg s r i] prints the last [i] messages between [s] and [r] as
+    a JSON file. *)
+val get_conversation_history: sender -> recipient -> int -> unit
 
 (** [get_conversation u1 u2] returns a json string representation of an existing
     conversation between [u1] and [u2]. Returns "null" if the conversation does
