@@ -12,6 +12,7 @@ type message = string
 
 type user_info = 
   {
+    friends: string list; 
     password : string;
   }
 
@@ -26,12 +27,16 @@ let firebase = "https://"^proj_id^".firebaseio.com/"
 
 (*********** I/O FUNCTIONS *****************)
 
+let get_friend j = 
+  j |> member "name" |> to_string
+
 (** [userjson_to_list j] returns a record representation of the json that 
     represents a user. [j] must be a string json representation that represents
     a user in Essenger. *)
 let userjson_to_record j =
   let json = from_string j in
   {
+    friends = json|> member "friends" |> to_list |> List.map get_friend; 
     password = json |> member "password" |> to_string;
   }
 
@@ -40,7 +45,6 @@ let build_conv_list j =
                  |> int_of_string  in 
   let acc = ref [] in
   for i = 1 to num_msgs do 
-    print_endline ("starting num: "^(string_of_int i));
     acc := ((j |> member (string_of_int i) |> member "sender" |> to_string),
             (j |> member (string_of_int i)|> member "recipient" |> to_string),
             (j |> member (string_of_int i) |> member "message" |> to_string)) 
@@ -93,6 +97,27 @@ let print_conv_info info =
   print_msgs msgs;
   print_endline "----------------------------------"
 
+(** [clean_word] creates a substring of the first alphanumeric character
+    to the last alphanumeric character (inclusively)  *)
+let clean_word s : string = 
+  try
+    let regexp = Str.regexp "[A-Za-z0-9]" in
+    let start_pos = Str.search_forward regexp s 0 in 
+    let end_pos = Str.search_backward regexp s (String.length s) in
+    String.lowercase_ascii
+      (String.sub s start_pos (1+end_pos-start_pos))
+  with _ -> raise Not_found
+
+(** [return_body] returns the body of an http request *)
+let return_body request = 
+  request >>= fun(resp,body) -> 
+  body |> Cohttp_lwt.Body.to_string >|= fun body -> body
+
+(** [print_body] prints and returns the body of an http request *)
+let print_body request = 
+  request >>= fun(resp,body) -> 
+  body |> Cohttp_lwt.Body.to_string >|= fun body -> print_endline body; body
+
 (******** USER FUNCTIONS ***********)
 
 let retrieve_user user =
@@ -129,8 +154,49 @@ let auth user pass =
   with
   | Yojson.Basic.Util.Type_error (a,b) -> false
 
+
 let convert_time timezone = 
   failwith "u"
+
+(******** FRIEND FUNCTIONS ***********)
+
+let get_num_friends user1 = 
+  let num_friends = 
+    Client.get 
+      (Uri.of_string (firebase^"/Users/"^user1^"/num_friends/num_friends.json")) 
+    |> return_body |> Lwt_main.run in
+  if (substring_contains num_friends "null") then 0 else 
+    num_friends |> clean_word |> int_of_string
+
+(** [inc_num_msgs] increments the number of messages in a conversation by 1 *)
+let inc_num_friends user1 =  
+  let new_num = ((get_num_friends user1)+ 1) |> string_of_int in 
+  let data = Cohttp_lwt.Body.of_string ("{\"num_friends\":\""^new_num^"\"}") in 
+  let _ = Client.put ~body: data 
+      (Uri.of_string (firebase^"/Users/"^user1^"/num_friends.json")) 
+          |> return_body |> Lwt_main.run in 
+  ()
+
+(** [add_friend user1 user2] adds [user2] to friend list of [user1] *)
+let add_friend user1 user2 =
+  let next_friend_num = (get_num_friends user1)|> string_of_int in 
+  let data = Cohttp_lwt.Body.of_string ("{\"name\":\""^user2^"\"}") in 
+  let _ = Client.put ~body:data 
+      (Uri.of_string (firebase^"/Users/"^user1^"/friends/"^next_friend_num^"/.json"))
+          |> return_body |> Lwt_main.run in 
+  inc_num_friends user1; 
+  ()
+
+let rec print_list = function 
+  | [] -> print_endline ""
+  | h::t -> print_endline h; print_list t 
+
+let get_friends user1 = 
+  let json = Client.get 
+      (Uri.of_string (firebase^"/Users/"^user1^".json"))
+             |> return_body |> Lwt_main.run in 
+  let user_info = userjson_to_record json in 
+  user_info.friends |> List.sort compare 
 
 (******** MESSAGE FUNCTIONS ***********)
 
@@ -138,27 +204,6 @@ let convert_time timezone =
     to largest *)
 let sort_users user1 user2 =
   if (user1 > user2) then (user2,user1) else (user1,user2)
-
-(** [clean_word] creates a substring of the first alphanumeric character
-    to the last alphanumeric character (inclusively)  *)
-let clean_word s : string = 
-  try
-    let regexp = Str.regexp "[A-Za-z0-9]" in
-    let start_pos = Str.search_forward regexp s 0 in 
-    let end_pos = Str.search_backward regexp s (String.length s) in
-    String.lowercase_ascii
-      (String.sub s start_pos (1+end_pos-start_pos))
-  with _ -> raise Not_found
-
-(** [return_body] returns the body of an http request *)
-let return_body request = 
-  request >>= fun(resp,body) -> 
-  body |> Cohttp_lwt.Body.to_string >|= fun body -> body
-
-(** [print_body] prints and returns the body of an http request *)
-let print_body request = 
-  request >>= fun(resp,body) -> 
-  body |> Cohttp_lwt.Body.to_string >|= fun body -> print_endline body; body
 
 (** [get_num_msgs] returns the number of messages in a converstation *)
 let get_num_msgs user1 user2 = 
@@ -184,7 +229,8 @@ let inc_num_msgs user1 user2 =
 
 let add_msg user1 user2 msg =
   let users = sort_users user1 user2 in 
-  let next_msg_num = (get_num_msgs user1 user2) + 1 |> string_of_int in 
+  let next_msg_num = (get_num_msgs user1 user2) + 1 |> string_of_int in
+  if next_msg_num = "1" then add_friend user1 user2 ;   
   let data = Cohttp_lwt.Body.of_string ("{\"sender\":\""^user1^
                                         "\",\"recipient\":\""^user2^
                                         "\",\"message\":\""^msg^"\"}") in 
@@ -235,9 +281,23 @@ let conversation_exists user1 user2 =
   let (body_string:string) = get_conversation user1 user2 |> Lwt_main.run in 
   not (substring_contains body_string "null")
 
+
 (* Below is used for testing *)
 
 let ()= ()
+(*add_friend "test" "jackie";
+  add_friend "test" "banpreet";*)
+(*get_friends "test" |> print_list;*)
+(*add_msg "ashneel" "beep" "hello there"; *)
+(*
+  get_num_friends "ashneel" |> string_of_int |> print_endline;
+  add_friend "ashneel" "jackie";
+  get_num_friends "ashneel" |> string_of_int |> print_endline;
+  add_friend "ashneel" "michelle";
+  *)
+(* inc_num_friends "ashneel"; *)
+(*add_friend "ashneel" "jackie";
+  get_friends "ashneel";*)
 (* get_conversation_history "jackie" "ashneel" 5; *)
 (* TESTING ADDING NEW MESSAGES TO FIREBASE *)
 (* print_endline(get_num_msgs "bob" "michael" |> string_of_int); *)

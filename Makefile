@@ -40,7 +40,7 @@ docs-private: build
 		-inv-merge-ml-mli -m A -hide-warnings $(MLIS) $(MLS)
 
 clean:
-	ocamlbuild -clean -thread
+	ocamlbuild -clean
 	rm -rf doc.public doc.private 
 
 zip:

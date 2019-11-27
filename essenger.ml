@@ -16,6 +16,11 @@ let rec print_stickers = function
 (** [replace_spaces s] replaces all whitespaces in [s] with '_'. *)
 let replace_spaces = Str.global_replace (Str.regexp " ") "_"
 
+(** [print_list l] prints the list [l] *)
+let rec print_list = function 
+  | [] -> print_endline ""
+  | h::t -> print_endline h; print_list t 
+
 (** [main] is the main interface for Essenger. It takes parsed commands from 
     the command module and processes them to perform the proper function as 
     specified by the command. *)
@@ -55,8 +60,11 @@ let rec main current_user () =
     | Friends -> (* Get List of friends *) 
       ANSITerminal.(print_string [cyan] 
                       ("Getting friends list."));
-      ANSITerminal.(print_string [red] 
-                      ("\nUnimplemented."));
+      print_endline "";
+      Server.get_friends current_user |> print_list;
+      print_endline "-------------------------------";
+      (*ANSITerminal.(print_string [red] 
+                      ("\nUnimplemented.")); *)
       main current_user ()
     | Help -> (* Access Help Options *) 
       ANSITerminal.(print_string [cyan]

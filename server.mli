@@ -28,6 +28,8 @@ type timestamp = string
 (** [message] represents the message that is to be sent. *)
 type message = string
 
+(********************** User Functions ***********************)
+
 (** [auth u] returns true if [u] is a registered username and [p] is the 
     correct corresponding password. *)
 val auth : sender -> string -> bool 
@@ -48,7 +50,11 @@ val retrieve_user: string -> string Lwt.t
     in Essenger, false otherwise. *)
 val user_exists: string -> bool
 
-(**********************Conversation Functions***********************)
+(********************** Friend Functions ***********************)
+(** [get_friends u] returns a list of the friends of [u] *)
+val get_friends: string -> string list 
+
+(********************** Message Functions ***********************)
 
 (** [add_msg s r m] adds a message [m] to the database under the conversation
     between sender [s] and recipient [r]. Creates a new conversation between 
