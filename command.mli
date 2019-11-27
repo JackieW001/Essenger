@@ -27,6 +27,7 @@ type command =
   | Friends 
   | Help
   | Logout 
+  | Sticker
 
 (** Raised when an empty command is entered. *)
 exception Empty

@@ -4,6 +4,15 @@ open Sha256
 
 (* Helper Functions *)
 
+let stickers = [(1,"(O-O)"); (2, "(\^o^/)")]
+
+let rec print_stickers = function
+  | [] -> ANSITerminal.(print_string [cyan] "")
+  | (id, s)::t -> ANSITerminal.(print_string [white] s); 
+    ANSITerminal.(print_string [cyan] (String.concat (string_of_int id) [" "; "\n"]));
+    print_stickers t
+
+
 (** [replace_spaces s] replaces all whitespaces in [s] with '_'. *)
 let replace_spaces = Str.global_replace (Str.regexp " ") "_"
 
@@ -61,6 +70,12 @@ let rec main current_user () =
       ANSITerminal.(print_string [cyan] 
                       "\nLogging Out.\n");
       exit 0
+    | Sticker -> 
+      ANSITerminal.(print_string [cyan] "\n Available stickers:\n");
+      print_stickers stickers;
+      ANSITerminal.(print_string [cyan] "\n To send a sticker, enter: \n
+      @username #[sticker number].");
+      main current_user ()
   with
   | Malformed -> print_string 
                    "Please try again. Hint: Did you start with '@'?\n";

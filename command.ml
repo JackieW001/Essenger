@@ -8,6 +8,7 @@ type command =
   | Friends
   | Help
   | Logout
+  | Sticker
 
 exception Empty
 
@@ -16,6 +17,28 @@ exception Malformed
 (*
 exception UnknownUser
 *)
+let stickers = [
+  (1,"(O-O)"); 
+  (2, "(\^o^/)")
+]
+
+let emojis = [
+  ("happy", "\u{1F600}");
+  ("sad", "\u{1F614}");
+  ("wink", "\u{1F609}");
+  ("thinking", "\u{1F914}");
+  ("kiss", "\u{1F618}");
+  ("heart_eyes","\u{1F60D}");
+  ("laughing", "\u{1F602}")
+]
+
+let rec get_emoji id = function
+  | [] -> "[emoji]"
+  | (i, e)::t -> if (id=i) then e else get_emoji id t
+
+let rec get_sticker i = function
+  | [] -> "[sticker]" (** sticker not found *)
+  | (id, s)::t -> if (id = i) then s else get_sticker i t
 
 (** [string_list_to_string lst] returns a concatenated string s from the
     string list lst from left to right. *)
@@ -23,7 +46,12 @@ let rec string_list_to_string (lst:string list) =
   let ex_name = 
     match lst with
     | [] -> ""
-    | h :: t -> h ^ " " ^ (string_list_to_string t) in
+    | h :: t -> (
+        if (Str.string_match (Str.regexp "\\(^#[a-z]*$\\)") h 0) then 
+          (get_emoji (String.sub h 1 (String.length h - 1)) emojis) ^ " " ^ (string_list_to_string t)
+        else if (Str.string_match (Str.regexp "\\(^#[0-9]*$\\)") h 0) then
+          get_sticker (int_of_string (String.sub h 1 1)) stickers
+        else h ^ " " ^ (string_list_to_string t) ) in
   String.trim ex_name
 
 let parse input = 
@@ -42,6 +70,9 @@ let parse input =
       else
       if comm = "friends" || 
          comm = "Friends" then Friends
+      else 
+      if comm = "stickers" ||
+         comm = "Stickers" then Sticker
       else
         (* 
       if <username is valid> then <continue below> else raise UnknownUser
