@@ -230,7 +230,6 @@ let inc_num_msgs user1 user2 =
 let add_msg user1 user2 msg =
   let users = sort_users user1 user2 in 
   let next_msg_num = (get_num_msgs user1 user2) + 1 |> string_of_int in
-  if next_msg_num = "1" then add_friend user1 user2 ;   
   let data = Cohttp_lwt.Body.of_string ("{\"sender\":\""^user1^
                                         "\",\"recipient\":\""^user2^
                                         "\",\"message\":\""^msg^"\"}") in 
@@ -239,7 +238,8 @@ let add_msg user1 user2 msg =
                       "_to_"^(snd users)^"/"^next_msg_num^".json"))
           |> return_body |> Lwt_main.run in 
   inc_num_msgs user1 user2; 
-  ()
+  if next_msg_num = "1" then (add_friend user1 user2;add_friend user2 user1) else 
+    ()
 
 let get_msg user1 user2 i = 
   let users = sort_users user1 user2 in 
