@@ -78,3 +78,15 @@ val delete_conversation : string -> string -> unit
     conversation in the database, false otherwise. *)
 val conversation_exists : string -> string -> bool
 
+(********************** Group Chat Functions ***********************)
+
+(** [create_gc g u] creates a group chat named [g] with users [u].
+    Raises: 
+    Exception "Group Chat name already exists." if group chat already exists. *)
+val create_gc : string -> string list -> unit 
+
+(** [get_gc_users g] returns a list of the users in group chat [g]. 
+    Returns:
+    [] if group chat doesn't exist  *)
+val get_gc_users : string -> string list 
+

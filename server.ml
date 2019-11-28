@@ -22,12 +22,19 @@ type conv_info =
     conversation : (sender * recipient * message) list;
   }
 
+type gc_info = 
+  {
+    num_users : int; 
+    users: string list; 
+  }
+
 let proj_id = "essenger-61fdc"
 let firebase = "https://"^proj_id^".firebaseio.com/"
 
 (*********** I/O FUNCTIONS *****************)
 
-let get_friend j = 
+(** [get_friend] returns a user *)
+let get_user j = 
   j |> member "name" |> to_string
 
 (** [userjson_to_list j] returns a record representation of the json that 
@@ -36,10 +43,11 @@ let get_friend j =
 let userjson_to_record j =
   let json = from_string j in
   {
-    friends = json|> member "friends" |> to_list |> List.map get_friend; 
+    friends = json|> member "friends" |> to_list |> List.map get_user; 
     password = json |> member "password" |> to_string;
   }
 
+(** [build_conv_list] adds all conversation data to a list *)
 let build_conv_list j = 
   let num_msgs = j |> member "num_msg" |> member "num_msg" |> to_string
                  |> int_of_string  in 
@@ -63,6 +71,8 @@ let convjson_to_record j =
     conversation = build_conv_list json;
   }
 
+(** [build_msg_history] adds a maximum number of [s] converstations to
+    a list. *)
 let build_msg_history j s = 
   let num_msgs = j |> member "num_msg" |> member "num_msg" |> to_string
                  |> int_of_string  in 
@@ -76,6 +86,7 @@ let build_msg_history j s =
   done;
   !acc
 
+(** [histjson_to_record] creates a record of a conversation history *)
 let histjson_to_record j s = 
   let json = from_string j in 
   {
@@ -84,7 +95,16 @@ let histjson_to_record j s =
     conversation = build_msg_history json s;
   }
 
+(** [gcjson_to_record] creates a record of a group chat *)
+let gcjson_to_record j = 
+  let json = from_string j in 
+  {
+    num_users = json |> member "num_users" |> member "num_users" 
+                |> to_string |> int_of_string; 
+    users = json|> member "users" |> to_list |> List.map get_user; 
+  }
 
+(** [print_conv_info] prints the conversations of a [conv_info] record *)
 let print_conv_info info = 
   let msgs = List.rev info.conversation in 
   print_endline "\n";
@@ -281,12 +301,82 @@ let conversation_exists user1 user2 =
   let (body_string:string) = get_conversation user1 user2 |> Lwt_main.run in 
   not (substring_contains body_string "null")
 
+(******** GROUP CONVERSATION FUNCTIONS ***********)
+
+(** [string_of_lst_helper] converts list [lst] to a string *)
+let rec string_of_lst_helper = function
+  | [] -> ""
+  | h::t -> let tail = string_of_lst_helper t in
+    h ^ (if tail= "" then "" else ", ") ^ tail
+
+(** [string_of_lst] converts list [lst] to a string *)
+let rec string_of_lst lst =  
+  "["^(string_of_lst_helper lst)^"]"
+
+let get_gc_users gc_name = 
+  let json = Client.get 
+      (Uri.of_string (firebase^"/GroupChats/"^gc_name^".json"))
+             |> return_body |> Lwt_main.run in 
+  if (substring_contains json "null") then [] else 
+    let gc_info = gcjson_to_record json in 
+    gc_info.users
+
+(** [get_num_users] gets number of users in [gc_name] *)
+let get_num_users gc_name =
+  let num_users = Client.get 
+      (Uri.of_string (firebase^"/GroupChats/"^gc_name^"/num_users/num_users.json"))
+                  |> return_body |> Lwt_main.run in 
+  if (substring_contains num_users "null") then 0 else 
+    num_users |> clean_word |> int_of_string
+
+(** [inc_num_users] increments number of users in [gc_name] *)
+let inc_num_users gc_name = 
+  let new_num = ((get_num_users gc_name)+ 1) |> string_of_int in 
+  let data = Cohttp_lwt.Body.of_string ("{\"num_users\":\""^new_num^"\"}") in 
+  let _ = Client.put ~body: data 
+      (Uri.of_string (firebase^"/GroupChats/"^gc_name^"/num_users.json")) 
+          |> return_body |> Lwt_main.run in 
+  ()
+
+(** [add_user_to_gc] adds a single user to [gc_name] *)
+let add_user_to_gc gc_name user = 
+  let num_users = get_num_users gc_name |> string_of_int in 
+  let data = Cohttp_lwt.Body.of_string ("{\"name\":\""^user^"\"}") in 
+  let _ = Client.put ~body: data 
+      (Uri.of_string (firebase^"/GroupChats/"^gc_name^"/users/"^num_users^".json")) in 
+  inc_num_users gc_name
+
+(** [add_users_to_gc] adds a list of users to [gc_name] *)
+let rec add_users_to_gc gc_name user_lst = 
+  match user_lst with 
+  | [] -> ()
+  | h::t -> add_user_to_gc gc_name h; add_users_to_gc gc_name t 
+
+let create_gc gc_name user_lst = 
+  let response = Client.get 
+      (Uri.of_string (firebase^"/GroupChats/"^gc_name^".json")) 
+                 |> return_body |> Lwt_main.run in 
+  if (substring_contains response "null") then 
+    add_users_to_gc gc_name user_lst
+  else failwith "Group Chat name already exists."
+
 
 (* Below is used for testing *)
 
 let ()= ()
-(*add_friend "test" "jackie";
-  add_friend "test" "banpreet";*)
+(* 
+  get_gc_users "second chat" |> print_list;
+  create_gc "first chat" [];
+  *)
+(* create_gc "first chat" ["jackie";"banpreet"]; *)
+(*
+  print_endline (string_of_lst [""]);
+  print_endline (string_of_lst ["hello";"hi"]);
+  *) 
+  (*
+  add_friend "test" "jackie";
+    add_friend "test" "banpreet";
+    *)
 (*get_friends "test" |> print_list;*)
 (*add_msg "ashneel" "beep" "hello there"; *)
 (*
