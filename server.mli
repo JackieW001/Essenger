@@ -34,11 +34,6 @@ type message = string
     correct corresponding password. *)
 val auth : sender -> string -> bool 
 
-(** [convert_time t] converts time from GMT to specified timezone [t]. 
-    Requires: timezones are in their capitalized abreviations. 
-    E.g. EST, GMT, PST *)
-val convert_time: string -> timestamp
-
 (** [create_user] creates user with associated password [pass]. 
     Currently private function to be implemented later *)
 val create_user: string -> string -> string Lwt.t

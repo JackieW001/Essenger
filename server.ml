@@ -117,6 +117,11 @@ let print_conv_info info =
   print_msgs msgs;
   print_endline "----------------------------------"
 
+(** [print_list] prints a list where each element is separated by new lines *)
+let rec print_list = function 
+  | [] -> print_endline ""
+  | h::t -> print_endline h; print_list t 
+
 (** [clean_word] creates a substring of the first alphanumeric character
     to the last alphanumeric character (inclusively)  *)
 let clean_word s : string = 
@@ -140,12 +145,14 @@ let print_body request =
 
 (******** USER FUNCTIONS ***********)
 
+(** [retrieve_user] returns [user] information from database *)
 let retrieve_user user =
   Client.get  (Uri.of_string (firebase^"/Users/"^user^".json")) 
   >>= fun (resp, body) ->
   body |> Cohttp_lwt.Body.to_string >|= fun body ->
   body
 
+(** [creates_user] creates [user] and adds password [pass] data *)
 let create_user user pass = 
   let data = Cohttp_lwt.Body.of_string ("{\"password\":\""^pass^"\"}") in 
   Client.put ~body:data (
@@ -154,16 +161,20 @@ let create_user user pass =
   body |> Cohttp_lwt.Body.to_string >|= fun body -> body
 
 
-(** [substring contains s1 s2] returns true if s2 is a substring in s1. *)
+(** [substring_contains s1 s2] returns true if s2 is a substring in s1. *)
 let substring_contains s1 s2 = 
   let regexp = Str.regexp_string s2 in
   try ignore (Str.search_forward regexp s1 0); true
   with Not_found -> false
 
+(** [user_exists] returns true if [user] exists. *)
 let user_exists user : bool = 
   let (body_string:string) = retrieve_user user |> Lwt_main.run in 
   not (substring_contains body_string "null")
 
+(** [auth] tries to authenticate [user] with given password [pass].
+    Returns: 
+    false if authentification is unsuccessful *)
 let auth user pass = 
   try
     let user_info = retrieve_user user |> Lwt_main.run in
@@ -175,11 +186,9 @@ let auth user pass =
   | Yojson.Basic.Util.Type_error (a,b) -> false
 
 
-let convert_time timezone = 
-  failwith "u"
-
 (******** FRIEND FUNCTIONS ***********)
 
+(** [get_num_friends] returns number of friends of [user1] *)
 let get_num_friends user1 = 
   let num_friends = 
     Client.get 
@@ -207,10 +216,7 @@ let add_friend user1 user2 =
   inc_num_friends user1; 
   ()
 
-let rec print_list = function 
-  | [] -> print_endline ""
-  | h::t -> print_endline h; print_list t 
-
+(** [get_friends] returns the friends of [user1] *)
 let get_friends user1 = 
   let json = Client.get 
       (Uri.of_string (firebase^"/Users/"^user1^".json"))
@@ -247,6 +253,7 @@ let inc_num_msgs user1 user2 =
           |> return_body |> Lwt_main.run in 
   ()
 
+(** [add_msg] adds a message [msg] to conversation between [user1] and [user2] *)
 let add_msg user1 user2 msg =
   let users = sort_users user1 user2 in 
   let next_msg_num = (get_num_msgs user1 user2) + 1 |> string_of_int in
@@ -261,6 +268,7 @@ let add_msg user1 user2 msg =
   if next_msg_num = "1" then (add_friend user1 user2;add_friend user2 user1) else 
     ()
 
+(** [get_msg] returns the message of index [i] between [user1] and [user2] *)
 let get_msg user1 user2 i = 
   let users = sort_users user1 user2 in 
   let data = 
@@ -271,6 +279,8 @@ let get_msg user1 user2 i =
   if (substring_contains data "null") then failwith "Message not found" else 
     data
 
+(** [get_conversation_history] returns the conversation history with [i] number of 
+    max entries between [user1] and [user2] *)
 let get_conversation_history user1 user2 i = 
   let users = sort_users user1 user2 in
   let request = 
@@ -283,6 +293,8 @@ let get_conversation_history user1 user2 i =
     print_conv_info conv_info; 
     ()
 
+(** [get_conversation] returns the conversation between 
+    [user1] and [user2] *)
 let get_conversation user1 user2 = 
   let users = sort_users user1 user2 in
   Client.get 
@@ -290,6 +302,8 @@ let get_conversation user1 user2 =
        (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^".json")) 
   |> return_body 
 
+(** [delete_conversation] deletes the conversation between 
+    [user1] and [user2] *)
 let delete_conversation user1 user2 = 
   let users = sort_users user1 user2 in 
   let _ = Client.delete 
@@ -297,6 +311,8 @@ let delete_conversation user1 user2 =
                       ".json")) in
   ()
 
+(** [conversation_exists] returns if a conversation exists between 
+    [user1] and [user2] *)
 let conversation_exists user1 user2 =
   let (body_string:string) = get_conversation user1 user2 |> Lwt_main.run in 
   not (substring_contains body_string "null")
