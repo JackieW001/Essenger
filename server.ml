@@ -224,6 +224,10 @@ let get_friends user1 =
   let user_info = userjson_to_record json in 
   user_info.friends |> List.sort compare 
 
+let delete_user user1 = 
+  let _ = Client.delete 
+      (Uri.of_string (firebase^"/Users/"^user1^".json")) in
+  ()
 (******** MESSAGE FUNCTIONS ***********)
 
 (** [sort_users] takes in two users and returns tuple of users from smallest
@@ -302,20 +306,19 @@ let get_conversation user1 user2 =
        (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^".json")) 
   |> return_body 
 
-(** [delete_conversation] deletes the conversation between 
-    [user1] and [user2] *)
-let delete_conversation user1 user2 = 
-  let users = sort_users user1 user2 in 
-  let _ = Client.delete 
-      (Uri.of_string (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^
-                      ".json")) in
-  ()
 
 (** [conversation_exists] returns if a conversation exists between 
     [user1] and [user2] *)
 let conversation_exists user1 user2 =
   let (body_string:string) = get_conversation user1 user2 |> Lwt_main.run in 
   not (substring_contains body_string "null")
+
+let delete_conversation user1 user2 = 
+  let users = sort_users user1 user2 in 
+  let _ = Client.delete 
+      (Uri.of_string (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^
+                      ".json")) in
+  ()
 
 (******** GROUP CONVERSATION FUNCTIONS ***********)
 

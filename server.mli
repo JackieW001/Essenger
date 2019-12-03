@@ -34,16 +34,19 @@ type message = string
     correct corresponding password. *)
 val auth : sender -> string -> bool 
 
-(** [create_user] creates user with associated password [pass]. 
+(** [create_user user] creates [user] with associated password [pass]. 
     Currently private function to be implemented later *)
 val create_user: string -> string -> string Lwt.t
 
-(** [retrieve_user] retrieves data associated with user *)
+(** [retrieve_user user] retrieves data associated with [user] *)
 val retrieve_user: string -> string Lwt.t
 
 (** [user_exists user] returns true if [user] is has a username and password
     in Essenger, false otherwise. *)
 val user_exists: string -> bool
+
+(** [delete_user] deletes [user] from database. *)
+val delete_user: string -> unit
 
 (********************** Friend Functions ***********************)
 (** [get_friends u] returns a list of the friends of [u] *)
@@ -65,13 +68,13 @@ val get_conversation_history: sender -> recipient -> int -> unit
     not exist. *)
 val get_conversation : string -> string -> string Lwt.t
 
-(** [delete_conversation u1 u2] deletes a conversation between [u1] and [u2].
-    Does nothing if conversation does not exist.*)
-val delete_conversation : string -> string -> unit
-
 (** [conversation_exists u1 u2] returns true if [u1] and [u2] have a 
     conversation in the database, false otherwise. *)
 val conversation_exists : string -> string -> bool
+
+(** [delete_conversation u1 u2] deletes a conversation between [u1] and [u2].
+    Does nothing if conversation does not exist.*)
+val delete_conversation : string -> string -> unit
 
 (********************** Group Chat Functions ***********************)
 
