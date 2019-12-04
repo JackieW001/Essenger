@@ -15,11 +15,11 @@ The better messenger.
 To use an emoji in a message, type `#emoji_name` For example, typing `#happy` displays the emoji 😀.
 The full list of available emojis:
 
-Faces:  😀 `happy` | 😟 `sad` | 😉 `wink` | 🤔 `thinking` |😘 `kiss` | 😍 `heart_eyes` | 😂 `laughing`
+Faces:  `😀 happy` | `😟 sad` | `😉 wink` | `🤔 thinking` | `😘 kiss` | `😍 heart_eyes` | `😂 laughing`
 
-Symbols: 💯 `hundred` | 💥 `bang` | 💓 `heart` | 💤 `sleep` | 💀 `skull` 
+Symbols: `💯 hundred` | `💥 bang` | `💓 heart` | `💤 sleep` | `💀 skull` 
 
-Animals: 🐵 `monkey` | 🐶 `dog` | 🐱 `cat` | 🦄 `unicorn` | 🐷 `pig`
+Animals: `🐵 monkey` | `🐶 dog` | `🐱 cat` | `🦄 unicorn` | `🐷 pig`
 
 # Stickers
 
