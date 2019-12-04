@@ -155,10 +155,9 @@ let retrieve_user user =
 (** [creates_user] creates [user] and adds password [pass] data *)
 let create_user user pass = 
   let data = Cohttp_lwt.Body.of_string ("{\"password\":\""^pass^"\"}") in 
-  Client.put ~body:data (
-    Uri.of_string (firebase^"/Users/"^user^".json")) 
-  >>= fun (resp, body) ->
-  body |> Cohttp_lwt.Body.to_string >|= fun body -> body
+  let _ = Client.put ~body:data (
+      Uri.of_string (firebase^"/Users/"^user^".json")) 
+          |> return_body |> Lwt_main.run in ()
 
 
 (** [substring_contains s1 s2] returns true if s2 is a substring in s1. *)

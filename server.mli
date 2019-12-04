@@ -36,7 +36,7 @@ val auth : sender -> string -> bool
 
 (** [create_user user] creates [user] with associated password [pass]. 
     Currently private function to be implemented later *)
-val create_user: string -> string -> string Lwt.t
+val create_user: string -> string -> unit
 
 (** [retrieve_user user] retrieves data associated with [user] *)
 val retrieve_user: string -> string Lwt.t
