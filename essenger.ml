@@ -6,11 +6,37 @@ open Sha256
 
 let stickers = [(1,"(O-O)"); (2, "(\^o^/)")]
 
+let emojis = [
+  ("happy", "\u{1F600}");
+  ("sad", "\u{1F614}");
+  ("wink", "\u{1F609}");
+  ("thinking", "\u{1F914}");
+  ("kiss", "\u{1F618}");
+  ("heart_eyes","\u{1F60D}");
+  ("laughing", "\u{1F602}");
+  ("hundred", "\u{1F4AF}");
+  ("bang", "\u{1F4A5}");
+  ("sleep", "\u{1F4A4}");
+  ("heart", "\u{1F493}");
+  ("skull", "\u{1F480}");  
+  ("monkey", "\u{1F435}");
+  ("dog", "\u{1F436}");
+  ("cat", "\u{1F431}");
+  ("unicorn", "\u{1F984}");
+  ("pig", "\u{1F437}")
+]
+
 let rec print_stickers = function
   | [] -> ANSITerminal.(print_string [cyan] "")
   | (id, s)::t -> ANSITerminal.(print_string [white] s); 
     ANSITerminal.(print_string [cyan] (String.concat (string_of_int id) [" "; "\n"]));
     print_stickers t
+
+let rec print_emojis = function
+  | [] -> ANSITerminal.(print_string [white] "")
+  | (id, e)::t -> ANSITerminal.(print_string [white] e);
+    ANSITerminal.(print_string [white] (String.concat id [" "; "\n"]));
+    print_emojis t
 
 
 (** [replace_spaces s] replaces all whitespaces in [s] with '_'. *)
@@ -84,6 +110,12 @@ let rec main current_user () =
       ANSITerminal.(print_string [cyan] "\n To send a sticker, enter: \n
       @username #[sticker number].");
       main current_user ()
+    | Emojis ->
+      ANSITerminal.(print_string [cyan] "\n Available emojis: \n");
+      print_emojis emojis;
+      ANSITerminal.(print_string [cyan] "\n To use an emoji, enter: \n @username #[emoji name].");
+      main current_user ()
+
   with
   | Malformed -> print_string 
                    "Please try again. Hint: Did you start with '@'?\n";

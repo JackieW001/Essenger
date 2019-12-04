@@ -28,6 +28,7 @@ type command =
   | Help
   | Logout 
   | Sticker
+  | Emojis
 
 (** Raised when an empty command is entered. *)
 exception Empty

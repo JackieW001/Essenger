@@ -9,6 +9,7 @@ type command =
   | Help
   | Logout
   | Sticker
+  | Emojis
 
 exception Empty
 
@@ -29,7 +30,17 @@ let emojis = [
   ("thinking", "\u{1F914}");
   ("kiss", "\u{1F618}");
   ("heart_eyes","\u{1F60D}");
-  ("laughing", "\u{1F602}")
+  ("laughing", "\u{1F602}");
+  ("hundred", "\u{1F4AF}");
+  ("bang", "\u{1F4A5}");
+  ("sleep", "\u{1F4A4}");
+  ("heart", "\u{1F493}");
+  ("skull", "\u{1F480}");  
+  ("monkey", "\u{1F435}");
+  ("dog", "\u{1F436}");
+  ("cat", "\u{1F431}");
+  ("unicorn", "\u{1F984}");
+  ("pig", "\u{1F437}")
 ]
 
 let rec get_emoji id = function
@@ -73,6 +84,9 @@ let parse input =
       else 
       if comm = "stickers" ||
          comm = "Stickers" then Sticker
+      else
+      if comm = "emojis" ||
+         comm = "Emojis" then Emojis
       else
         (* 
       if <username is valid> then <continue below> else raise UnknownUser
