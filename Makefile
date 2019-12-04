@@ -1,4 +1,4 @@
-MODULES=command essenger server 
+MODULES=command essenger server authors
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
@@ -14,7 +14,7 @@ build:
 	$(OCAMLBUILD) $(OBJECTS)
 
 test:
-	$(OCAMLBUILD) -tag debug $(TEST) && ./$(TEST)
+	$(OCAMLBUILD) -tag 'debug' $(TEST) && ./$(TEST)
 
 bisect-test:
 	BISECT_COVERAGE=YES $(OCAMLBUILD) -tag 'debug' $(TEST) && ./$(TEST) -runner sequential
@@ -41,7 +41,7 @@ docs-private: build
 
 clean:
 	ocamlbuild -clean
-	rm -rf doc.public doc.private 
+	rm -rf doc.public doc.private essenger.zip
 
 zip:
 	zip essenger.zip *.ml* *install.txt* _tags Makefile
