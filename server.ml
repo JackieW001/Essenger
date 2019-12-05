@@ -340,6 +340,15 @@ let rec string_of_lst_helper = function
 let rec string_of_lst lst =  
   "["^(string_of_lst_helper lst)^"]"
 
+(** [retrieve_gc] retrieves group chat from database *)
+let retrieve_gc gc_name = 
+  Client.get (Uri.of_string (firebase^"/GroupChats/"^gc_name^".json")) 
+  |> return_body |> Lwt_main.run
+
+let gc_exists gc_name = 
+  let (body_string:string) = retrieve_gc gc_name in 
+  not (substring_contains body_string "null")
+
 let get_gc_users gc_name = 
   let json = Client.get 
       (Uri.of_string (firebase^"/GroupChats/"^gc_name^".json"))
@@ -380,22 +389,26 @@ let rec add_users_to_gc gc_name user_lst =
   | h::t -> add_user_to_gc gc_name h; add_users_to_gc gc_name t 
 
 let create_gc gc_name user_lst = 
-  let response = Client.get 
-      (Uri.of_string (firebase^"/GroupChats/"^gc_name^".json")) 
-                 |> return_body |> Lwt_main.run in 
-  if (substring_contains response "null") then 
-    add_users_to_gc gc_name user_lst
-  else failwith "Group Chat name already exists."
+  if not (gc_exists gc_name) then 
+    (add_users_to_gc gc_name user_lst; true)
+  else false 
+
+let add_gc_msg gc_name user msg =
+  failwith "u"
+
+let get_gc_history gc_name i = 
+  failwith "u"
 
 
 (* Below is used for testing *)
 
-let ()= ()
-(* 
+let ()= 
+  print_endline ( (create_gc "special_surprise" ["jackie";"william"]) |> string_of_bool); 
+  (* 
   get_gc_users "second chat" |> print_list;
   create_gc "first chat" [];
   *)
-(* create_gc "first chat" ["jackie";"banpreet"]; *)
+  (* create_gc "first chat" ["jackie";"banpreet"]; *)
 (*
   print_endline (string_of_lst [""]);
   print_endline (string_of_lst ["hello";"hi"]);
@@ -404,26 +417,26 @@ let ()= ()
   add_friend "test" "jackie";
     add_friend "test" "banpreet";
     *)
-(*get_friends "test" |> print_list;*)
-(*add_msg "ashneel" "beep" "hello there"; *)
+  (*get_friends "test" |> print_list;*)
+  (*add_msg "ashneel" "beep" "hello there"; *)
 (*
   get_num_friends "ashneel" |> string_of_int |> print_endline;
   add_friend "ashneel" "jackie";
   get_num_friends "ashneel" |> string_of_int |> print_endline;
   add_friend "ashneel" "michelle";
   *)
-(* inc_num_friends "ashneel"; *)
-(*add_friend "ashneel" "jackie";
-  get_friends "ashneel";*)
-(* get_conversation_history "jackie" "ashneel" 5; *)
-(* TESTING ADDING NEW MESSAGES TO FIREBASE *)
-(* print_endline(get_num_msgs "bob" "michael" |> string_of_int); *)
-(*inc_num_msgs "jackie" "banpreet" *)
-(*print_endline((get_num_msgs "jackie" "banpreet") |> string_of_int);*)
-(*  TESTING DELETING A USER
-    let deleted_user = Lwt_main.run (delete_user "michael") in 
-    print_endline ("Received body\n" ^ deleted_user);
-    let deleted_conversation = 
-    Lwt_main.run (delete_conversation "bob" "michael") in
-    print_endline ("Received body\n" ^ deleted_conversation);
-*)
+  (* inc_num_friends "ashneel"; *)
+  (*add_friend "ashneel" "jackie";
+    get_friends "ashneel";*)
+  (* get_conversation_history "jackie" "ashneel" 5; *)
+  (* TESTING ADDING NEW MESSAGES TO FIREBASE *)
+  (* print_endline(get_num_msgs "bob" "michael" |> string_of_int); *)
+  (*inc_num_msgs "jackie" "banpreet" *)
+  (*print_endline((get_num_msgs "jackie" "banpreet") |> string_of_int);*)
+  (*  TESTING DELETING A USER
+      let deleted_user = Lwt_main.run (delete_user "michael") in 
+      print_endline ("Received body\n" ^ deleted_user);
+      let deleted_conversation = 
+      Lwt_main.run (delete_conversation "bob" "michael") in
+      print_endline ("Received body\n" ^ deleted_conversation);
+  *)
