@@ -24,6 +24,8 @@ type conv_info =
 
 type gc_info = 
   {
+    conversation: (sender * unit * message) list; 
+    num_msgs : int; 
     num_users : int; 
     users: string list; 
   }
@@ -94,35 +96,61 @@ let build_msg_history j s =
   !acc
 
 (** [histjson_to_record] creates a record of a conversation history *)
-let histjson_to_record j s = 
+let histjson_to_record j = 
   let json = from_string j in 
   {
     num_msgs = json |> member "num_msg" |> member "num_msg" |> to_string 
                |> int_of_string;
-    conversation = build_msg_history json s;
+    conversation = build_conv_list json ;
   }
+
+(** [build_conv_list] adds all group chat conversation data to a list *)
+let build_gc_conv_list j = 
+  let num_msgs = j |> member "num_msgs" |> member "num_msgs" |> to_string
+                 |> int_of_string  in 
+  let acc = ref [] in
+  for i = 0 to (num_msgs-1) do 
+    acc := ((j |> member "conversation" |> 
+             member (string_of_int i) |> member "sender" |> to_string), (),
+            (j |> member "conversation" |> 
+             member (string_of_int i) |> member "message" |> to_string)) 
+           :: !acc;
+  done;
+  !acc
+
+
+(** [conv_to_str_list] converts conversation in record to string list *)
+let conv_to_str_list (info: conv_info) = 
+  let msgs = info.conversation in 
+  let rec format_msgs msgs acc = 
+    match msgs with 
+    | [] -> acc
+    | (s,_,m)::t -> format_msgs t ((s ^ ": " ^ m ^ "\n")::acc)
+  in 
+  format_msgs msgs []
 
 (** [gcjson_to_record] creates a record of a group chat *)
 let gcjson_to_record j = 
   let json = from_string j in 
   {
+    conversation = build_gc_conv_list json; 
+    num_msgs = json |> member "conversation" |> member "num_msgs" |> member "num_msgs" 
+               |> to_string |> int_of_string; 
     num_users = json |> member "num_users" |> member "num_users" 
                 |> to_string |> int_of_string; 
     users = json|> member "users" |> to_list |> List.map get_user; 
   }
 
-(** [print_conv_info] prints the conversations of a [conv_info] record *)
-let print_conv_info info = 
-  let msgs = List.rev info.conversation in 
-  print_endline "\n";
-  let rec print_msgs msgs = 
+(** [gc_conv_to_str_list] converts group chat conversation in record to 
+    string list *)
+let gc_conv_to_str_list (info: gc_info) = 
+  let msgs = info.conversation in 
+  let rec format_msgs msgs acc = 
     match msgs with 
-    | [] -> print_endline ""
-    | (s,_,m)::t -> print_endline (s ^ ": " ^ m ^ "\n");
-      print_msgs t
+    | [] -> acc
+    | (s,_,m)::t -> format_msgs t ((s ^ ": " ^ m ^ "\n")::acc)
   in 
-  print_msgs msgs;
-  print_endline "----------------------------------"
+  format_msgs msgs []
 
 (** [print_list] prints a list where each element is separated by new lines *)
 let rec print_list = function 
@@ -290,9 +318,9 @@ let get_msg user1 user2 i =
   if (substring_contains data "null") then failwith "Message not found" else 
     data
 
-(** [get_conversation_history] returns the conversation history with [i] number of 
-    max entries between [user1] and [user2] *)
-let get_conversation_history user1 user2 i = 
+(** [get_conversation_history] returns the conversation history between 
+    [user1] and [user2] *)
+let get_conversation_history user1 user2 = 
   let users = sort_users user1 user2 in
   let request = 
     Client.get 
@@ -300,9 +328,8 @@ let get_conversation_history user1 user2 i =
          (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^".json")) 
     |> return_body |> Lwt_main.run in 
   if (substring_contains request "null") then failwith "No message history" else
-    let conv_info = histjson_to_record request i in 
-    print_conv_info conv_info; 
-    ()
+    let conv_info = histjson_to_record request in 
+    conv_to_str_list conv_info
 
 (** [get_conversation] returns the conversation between 
     [user1] and [user2] *)
@@ -401,9 +428,9 @@ let get_num_gc_msgs gc_name =
 (** [inc_num_gc_msgs] increments the number of messages in a group chat by 1 *)
 let inc_num_gc_msgs gc_name =
   let new_num = ((get_num_gc_msgs gc_name)+ 1) |> string_of_int in 
-  let data = Cohttp_lwt.Body.of_string ("{\"num_msg\":\""^new_num^"\"}") in 
+  let data = Cohttp_lwt.Body.of_string ("{\"num_msgs\":\""^new_num^"\"}") in 
   let _ = Client.put ~body: data 
-      (Uri.of_string (firebase^"/GroupChats/"^gc_name^"/num_msg.json")) 
+      (Uri.of_string (firebase^"/GroupChats/"^gc_name^"/conversation/num_msgs.json")) 
           |> return_body |> Lwt_main.run in 
   ()
 
@@ -412,26 +439,35 @@ let add_gc_msg gc_name user msg =
   let data = Cohttp_lwt.Body.of_string ("{\"sender\":\""^user^
                                         "\",\"message\":\""^msg^"\"}") in 
   let _ = Client.put ~body:data 
-      (Uri.of_string (firebase^"/GroupChats/"^gc_name^"/msg/"^next_msg_num^".json"))
+      (Uri.of_string (firebase^"/GroupChats/"^gc_name^"/conversation/"^next_msg_num^".json"))
           |> return_body |> Lwt_main.run in 
   inc_num_gc_msgs gc_name; ()
-(* if next_msg_num = "1" then (add_friend user1 user2;add_friend user2 user1) else 
-   () *) 
 
-let get_gc_history gc_name i = 
-  ()
+let get_gc_history gc_name = 
+  let request = 
+    Client.get 
+      (Uri.of_string 
+         (firebase^"/GroupChats/"^gc_name^".json")) 
+    |> return_body |> Lwt_main.run in 
+  print_endline request; 
+  if (substring_contains request "null") then failwith "No message history" else
+    let gc_conv_info = gcjson_to_record request in 
+
+    gc_conv_to_str_list gc_conv_info
 
 
 (* Below is used for testing *)
 
-let ()= ()
-(* print_endline ( (create_gc "special_surprise" ["jackie";"william"]) |> string_of_bool); *)
-(* add_gc_msg "special_surprise" "jackie" "bye bye"; *)
-(* 
+let ()= ();
+  (* print_list (get_gc_history "special_surprise"); *) 
+  (* create_gc "special_surprise" ["jackie";"william"];
+     add_gc_msg "special_surprise" "jackie" "bye bye"; *)
+
+  (* 
   get_gc_users "second chat" |> print_list;
   create_gc "first chat" [];
   *)
-(* create_gc "first chat" ["jackie";"banpreet"]; *)
+  (* create_gc "first chat" ["jackie";"banpreet"]; *)
 (*
   print_endline (string_of_lst [""]);
   print_endline (string_of_lst ["hello";"hi"]);
@@ -440,26 +476,26 @@ let ()= ()
   add_friend "test" "jackie";
     add_friend "test" "banpreet";
     *)
-(*get_friends "test" |> print_list;*)
-(*add_msg "ashneel" "beep" "hello there"; *)
+  (*get_friends "test" |> print_list;*)
+  (*add_msg "ashneel" "beep" "hello there"; *)
 (*
   get_num_friends "ashneel" |> string_of_int |> print_endline;
   add_friend "ashneel" "jackie";
   get_num_friends "ashneel" |> string_of_int |> print_endline;
   add_friend "ashneel" "michelle";
   *)
-(* inc_num_friends "ashneel"; *)
-(*add_friend "ashneel" "jackie";
-  get_friends "ashneel";*)
-(* get_conversation_history "jackie" "ashneel" 5; *)
-(* TESTING ADDING NEW MESSAGES TO FIREBASE *)
-(* print_endline(get_num_msgs "bob" "michael" |> string_of_int); *)
-(*inc_num_msgs "jackie" "banpreet" *)
-(*print_endline((get_num_msgs "jackie" "banpreet") |> string_of_int);*)
-(*  TESTING DELETING A USER
-    let deleted_user = Lwt_main.run (delete_user "michael") in 
-    print_endline ("Received body\n" ^ deleted_user);
-    let deleted_conversation = 
-    Lwt_main.run (delete_conversation "bob" "michael") in
-    print_endline ("Received body\n" ^ deleted_conversation);
-*)
+  (* inc_num_friends "ashneel"; *)
+  (*add_friend "ashneel" "jackie";
+    get_friends "ashneel";*)
+  (* get_conversation_history "jackie" "ashneel" 5; *)
+  (* TESTING ADDING NEW MESSAGES TO FIREBASE *)
+  (* print_endline(get_num_msgs "bob" "michael" |> string_of_int); *)
+  (*inc_num_msgs "jackie" "banpreet" *)
+  (*print_endline((get_num_msgs "jackie" "banpreet") |> string_of_int);*)
+  (*  TESTING DELETING A USER
+      let deleted_user = Lwt_main.run (delete_user "michael") in 
+      print_endline ("Received body\n" ^ deleted_user);
+      let deleted_conversation = 
+      Lwt_main.run (delete_conversation "bob" "michael") in
+      print_endline ("Received body\n" ^ deleted_conversation);
+  *)

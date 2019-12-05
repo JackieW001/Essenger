@@ -76,7 +76,7 @@ let rec main current_user ()=
           ANSITerminal.(print_string [cyan] 
                           ("Getting message history with: " ^ r ^ "\n"));
           if Server.user_exists r then 
-            (Server.get_conversation_history current_user r 5; 
+            (print_list (Server.get_conversation_history current_user r); 
              main current_user ())
           else 
             (ANSITerminal.(print_string [red]

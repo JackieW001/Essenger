@@ -41,9 +41,9 @@ val get_friends: string -> string list
     [s] and [r] if the conversation does not exist. *)
 val add_msg: sender -> recipient -> message -> unit
 
-(** [get_msg s r i] prints the last [i] messages between [s] and [r] as
-    a JSON file. *)
-val get_conversation_history: sender -> recipient -> int -> unit
+(** [get_conversation_history s r i] returns a string list of conversations
+    between s and r from oldest to newest *)
+val get_conversation_history: sender -> recipient -> string list 
 
 (** [get_conversation u1 u2] returns a json string representation of an existing
     conversation between [u1] and [u2]. Returns "null" if the conversation does
@@ -74,7 +74,6 @@ val get_gc_users : string -> string list
 (** [add_gc_msg g u m] adds a message [m] sent by [u] to group chat [g]  *)
 val add_gc_msg : string -> string -> string -> unit 
 
-(** [get_gc_history g i ] returns a list of the messages in group chat [g] 
-    with max [i] messages *)
-val get_gc_history : string -> int -> unit 
+(** [get_gc_history g i ] returns a list of the messages in group chat [g] *)
+val get_gc_history : string -> string list 
 
