@@ -166,7 +166,6 @@ let create_user user pass =
       Uri.of_string (firebase^"/Users/"^user^".json")) 
           |> return_body |> Lwt_main.run in ()
 
-
 (** [substring_contains s1 s2] returns true if s2 is a substring in s1. *)
 let substring_contains s1 s2 = 
   let regexp = Str.regexp_string s2 in
@@ -192,7 +191,6 @@ let auth user pass =
     (userjson_to_record user_info).password = hashed_password 
   with
   | Yojson.Basic.Util.Type_error (a,b) -> false
-
 
 (******** FRIEND FUNCTIONS ***********)
 
@@ -236,6 +234,7 @@ let delete_user user1 =
   let _ = Client.delete 
       (Uri.of_string (firebase^"/Users/"^user1^".json")) in
   ()
+
 (******** MESSAGE FUNCTIONS ***********)
 
 (** [sort_users] takes in two users and returns tuple of users from smallest
