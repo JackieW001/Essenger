@@ -1,6 +1,10 @@
 open OUnit2
 open Server
 
+(* 
+  WRITE TEST COMMENT PARAGRAPH
+*)
+
 let user_tests = 
   "init user suite" >:::
   [
