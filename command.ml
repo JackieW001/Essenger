@@ -20,8 +20,8 @@ exception Malformed
 exception UnknownUser
 *)
 let stickers = [
-  (1,"(O-O)"); 
-  (2, "(\^o^/)")
+  (1,{|(O-O)|}); 
+  (2, {|(\^o^/)|})
 ]
 
 let emojis = [

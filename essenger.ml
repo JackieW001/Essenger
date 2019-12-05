@@ -4,7 +4,7 @@ open Sha256
 
 (* Helper Functions *)
 
-let stickers = [(1,"(O-O)"); (2, "(\^o^/)")]
+let stickers = [(1,{|(O-O)|}); (2, {|(\^o^/)|})]
 
 let emojis = [
   ("happy", "\u{1F600}");
@@ -151,7 +151,7 @@ let rec main current_user ()=
     [login] takes in user input and passes that information as a JSON to the server,
     which authenticates the login. If login fails, user is prompted to try again.*)
 let rec login () = 
-  print_endline (" 
+  print_endline ({|
 
  /$$$$$$$$  /$$$$$$  /$$$$$$  /$$$$$$$$ /$$   /$$  /$$$$$$  /$$$$$$$$ /$$$$$$$ 
 | $$_____/ /$$__  $$/$$__  $$| $$_____/| $$$ | $$ /$$__  $$| $$_____/| $$__  $$
@@ -163,7 +163,7 @@ let rec login () =
 | $$$$$$$$|  $$$$$$/  $$$$$$/| $$$$$$$$| $$ \   $$| $$$$$$/ | $$$$$$$$| $$  | $$
 |________/ \______/ \______/ |________/|__/  \__/ \______/ |________/|__/  |__/
 
-                                                                        ");
+                                                                        |} );
   ANSITerminal.(print_string [cyan] 
                   "\nWelcome to Essenger, the Better Messenger.\n");
   ANSITerminal.(print_string [cyan] 
