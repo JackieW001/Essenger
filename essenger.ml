@@ -38,7 +38,6 @@ let rec print_emojis = function
     ANSITerminal.(print_string [white] (String.concat id [" "; "\n"]));
     print_emojis t
 
-
 (** [replace_spaces s] replaces all whitespaces in [s] with '_'. *)
 let replace_spaces = Str.global_replace (Str.regexp " ") "_"
 
@@ -144,9 +143,6 @@ let rec login () =
     let username_input = replace_spaces (String.trim(read_line ())) in
     print_string "Enter your password: ";
     let password_input = String.trim(read_line ()) in
-    (* 
-    if authenticated, then main, else try again
-  *)
     if Server.auth username_input password_input then 
       (ANSITerminal.(erase Screen);
        ANSITerminal.(print_string [green] 

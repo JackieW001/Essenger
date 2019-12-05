@@ -42,10 +42,17 @@ let get_user j =
     a user in Essenger. *)
 let userjson_to_record j =
   let json = from_string j in
-  {
-    friends = json|> member "friends" |> to_list |> List.map get_user; 
-    password = json |> member "password" |> to_string;
-  }
+  try
+    {
+      friends = json|> member "friends" |> to_list |> List.map get_user; 
+      password = json |> member "password" |> to_string;
+    }
+  with 
+  | Yojson.Basic.Util.Type_error (a,b) -> 
+    {
+      friends = [];
+      password =  json |> member "password" |> to_string;
+    }
 
 (** [build_conv_list] adds all conversation data to a list *)
 let build_conv_list j = 
@@ -180,6 +187,8 @@ let auth user pass =
     let init_ctx = init () in 
     update_string init_ctx pass; 
     let hashed_password = to_hex (finalize init_ctx) in
+    print_endline (hashed_password);
+    print_endline ((userjson_to_record user_info).password);
     (userjson_to_record user_info).password = hashed_password 
   with
   | Yojson.Basic.Util.Type_error (a,b) -> false
