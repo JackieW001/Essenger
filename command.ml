@@ -10,6 +10,7 @@ type command =
   | Logout
   | Sticker
   | Emojis
+  | GroupChat of string * (username list)
 
 exception Empty
 
@@ -59,7 +60,8 @@ let rec string_list_to_string (lst:string list) =
     | [] -> ""
     | h :: t -> (
         if (Str.string_match (Str.regexp "\\(^#[a-z]*$\\)") h 0) then 
-          (get_emoji (String.sub h 1 (String.length h - 1)) emojis) ^ " " ^ (string_list_to_string t)
+          (get_emoji (String.sub h 1 (String.length h - 1)) emojis) ^ "  " ^ 
+          (string_list_to_string t)
         else if (Str.string_match (Str.regexp "\\(^#[0-9]*$\\)") h 0) then
           get_sticker (int_of_string (String.sub h 1 1)) stickers
         else h ^ " " ^ (string_list_to_string t) ) in
@@ -88,9 +90,8 @@ let parse input =
       if comm = "emojis" ||
          comm = "Emojis" then Emojis
       else
-        (* 
-      if <username is valid> then <continue below> else raise UnknownUser
-      *)
+      if comm = "gc" then GroupChat ((mess |> List.hd) ,(mess |> List.tl))
+      else
       if List.length mess > 0 
       then 
         Send (comm,string_list_to_string mess)
