@@ -73,6 +73,7 @@ let convo_tests =
         let _ = Server.conversation_exists "test1" "test2" in 
         let _ = Server.conversation_exists "test1" "test2" in 
         let _ = Server.conversation_exists "test1" "test2" in
+        let _ = Server.conversation_exists "test1" "test2" in
         () );
     "check if convo exists a bit after deletion" >:: (fun _ ->
         assert_equal false
@@ -81,7 +82,7 @@ let convo_tests =
 
 let tests =
   [
-    user_tests;
+    (* user_tests; *)
     convo_tests;
   ]
 

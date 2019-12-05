@@ -125,7 +125,7 @@ let conv_to_str_list (info: conv_info) =
   let rec format_msgs msgs acc = 
     match msgs with 
     | [] -> acc
-    | (s,_,m)::t -> format_msgs t ((s ^ ": " ^ m ^ "\n")::acc)
+    | (s,_,m)::t -> format_msgs t ((s ^ ": " ^ m)::acc)
   in 
   format_msgs msgs []
 
@@ -148,14 +148,14 @@ let gc_conv_to_str_list (info: gc_info) =
   let rec format_msgs msgs acc = 
     match msgs with 
     | [] -> acc
-    | (s,_,m)::t -> format_msgs t ((s ^ ": " ^ m ^ "\n")::acc)
+    | (s,_,m)::t -> format_msgs t ((s ^ ": " ^ m )::acc)
   in 
   format_msgs msgs []
 
 (** [print_list] prints a list where each element is separated by new lines *)
 let rec print_list = function 
   | [] -> print_endline ""
-  | h::t -> print_endline h; print_list t 
+  | h::t -> print_endline (h^"\n"); print_list t 
 
 (** [clean_word] creates a substring of the first alphanumeric character
     to the last alphanumeric character (inclusively)  *)
@@ -457,7 +457,8 @@ let get_gc_history gc_name =
 
 (* Below is used for testing *)
 
-let ()= (); print_list (get_gc_history "special_surprise");
+let ()= (); 
+
   (* create_gc "special_surprise" ["jackie";"william"];
      add_gc_msg "special_surprise" "jackie" "bye bye";
      add_gc_msg "special_surprise" "william" "hi"; 
