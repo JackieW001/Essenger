@@ -106,8 +106,8 @@ let histjson_to_record j =
 
 (** [build_conv_list] adds all group chat conversation data to a list *)
 let build_gc_conv_list j = 
-  let num_msgs = j |> member "num_msgs" |> member "num_msgs" |> to_string
-                 |> int_of_string  in 
+  let num_msgs = j |> member "conversation" |> member "num_msgs" 
+                 |> member "num_msgs" |> to_string |> int_of_string  in 
   let acc = ref [] in
   for i = 0 to (num_msgs-1) do 
     acc := ((j |> member "conversation" |> 
@@ -134,8 +134,8 @@ let gcjson_to_record j =
   let json = from_string j in 
   {
     conversation = build_gc_conv_list json; 
-    num_msgs = json |> member "conversation" |> member "num_msgs" |> member "num_msgs" 
-               |> to_string |> int_of_string; 
+    num_msgs = json |> member "conversation" |> member "num_msgs" 
+               |> member "num_msgs" |> to_string |> int_of_string; 
     num_users = json |> member "num_users" |> member "num_users" 
                 |> to_string |> int_of_string; 
     users = json|> member "users" |> to_list |> List.map get_user; 
@@ -450,18 +450,18 @@ let get_gc_history gc_name =
       (Uri.of_string 
          (firebase^"/GroupChats/"^gc_name^".json")) 
     |> return_body |> Lwt_main.run in 
-  print_endline request; 
   if (substring_contains request "null") then failwith "No message history" else
     let gc_conv_info = gcjson_to_record request in 
-
     gc_conv_to_str_list gc_conv_info
 
 
 (* Below is used for testing *)
 
-let ()= ();
-  add_gc_msg "special_surprise" "william" "hi";
-  (* print_list (get_gc_history "special_surprise"); *) 
+let ()= (); print_list (get_gc_history "special_surprise");
+  (* create_gc "special_surprise" ["jackie";"william"];
+     add_gc_msg "special_surprise" "jackie" "bye bye";
+     add_gc_msg "special_surprise" "william" "hi"; 
+     print_list (get_gc_history "special_surprise"); *) 
   (* create_gc "special_surprise" ["jackie";"william"];
      add_gc_msg "special_surprise" "jackie" "bye bye"; *)
 
