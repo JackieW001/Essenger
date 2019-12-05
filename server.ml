@@ -398,19 +398,19 @@ let add_gc_msg gc_name user msg =
                       "/conversation/messages.json")) in ()
 
 let get_gc_history gc_name i = 
-  failwith "u"
+  ()
 
 
 (* Below is used for testing *)
 
-let ()= ()
-(* print_endline ( (create_gc "special_surprise" ["jackie";"william"]) |> string_of_bool); *)
-(* add_gc_msg "special_surprise" "jackie" "hello"; *)
-(* 
+let ()= 
+  (* print_endline ( (create_gc "special_surprise" ["jackie";"william"]) |> string_of_bool); *)
+  add_gc_msg "special_surprise" "jackie" "hello"; 
+  (* 
   get_gc_users "second chat" |> print_list;
   create_gc "first chat" [];
   *)
-(* create_gc "first chat" ["jackie";"banpreet"]; *)
+  (* create_gc "first chat" ["jackie";"banpreet"]; *)
 (*
   print_endline (string_of_lst [""]);
   print_endline (string_of_lst ["hello";"hi"]);
@@ -419,26 +419,26 @@ let ()= ()
   add_friend "test" "jackie";
     add_friend "test" "banpreet";
     *)
-(*get_friends "test" |> print_list;*)
-(*add_msg "ashneel" "beep" "hello there"; *)
+  (*get_friends "test" |> print_list;*)
+  (*add_msg "ashneel" "beep" "hello there"; *)
 (*
   get_num_friends "ashneel" |> string_of_int |> print_endline;
   add_friend "ashneel" "jackie";
   get_num_friends "ashneel" |> string_of_int |> print_endline;
   add_friend "ashneel" "michelle";
   *)
-(* inc_num_friends "ashneel"; *)
-(*add_friend "ashneel" "jackie";
-  get_friends "ashneel";*)
-(* get_conversation_history "jackie" "ashneel" 5; *)
-(* TESTING ADDING NEW MESSAGES TO FIREBASE *)
-(* print_endline(get_num_msgs "bob" "michael" |> string_of_int); *)
-(*inc_num_msgs "jackie" "banpreet" *)
-(*print_endline((get_num_msgs "jackie" "banpreet") |> string_of_int);*)
-(*  TESTING DELETING A USER
-    let deleted_user = Lwt_main.run (delete_user "michael") in 
-    print_endline ("Received body\n" ^ deleted_user);
-    let deleted_conversation = 
-    Lwt_main.run (delete_conversation "bob" "michael") in
-    print_endline ("Received body\n" ^ deleted_conversation);
-*)
+  (* inc_num_friends "ashneel"; *)
+  (*add_friend "ashneel" "jackie";
+    get_friends "ashneel";*)
+  (* get_conversation_history "jackie" "ashneel" 5; *)
+  (* TESTING ADDING NEW MESSAGES TO FIREBASE *)
+  (* print_endline(get_num_msgs "bob" "michael" |> string_of_int); *)
+  (*inc_num_msgs "jackie" "banpreet" *)
+  (*print_endline((get_num_msgs "jackie" "banpreet") |> string_of_int);*)
+  (*  TESTING DELETING A USER
+      let deleted_user = Lwt_main.run (delete_user "michael") in 
+      print_endline ("Received body\n" ^ deleted_user);
+      let deleted_conversation = 
+      Lwt_main.run (delete_conversation "bob" "michael") in
+      print_endline ("Received body\n" ^ deleted_conversation);
+  *)

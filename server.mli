@@ -74,6 +74,7 @@ val get_gc_users : string -> string list
 (** [add_gc_msg g u m] adds a message [m] sent by [u] to group chat [g]  *)
 val add_gc_msg : string -> string -> string -> unit 
 
-(** [get_gc_history g] returns a list of the messages in group chat [g]  *)
-val get_gc_history : string -> string list  
+(** [get_gc_history g i ] returns a list of the messages in group chat [g] 
+    with max [i] messages *)
+val get_gc_history : string -> int -> unit 
 
