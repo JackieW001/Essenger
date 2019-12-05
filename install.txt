@@ -13,7 +13,7 @@ Essenger requires the following OCaml packages:
   sha
   str
   ssl
-  ssl_lwt
+  lwt_ssl
   cohttp
   cohttp-lwt
   cohttp-lwt-unix 
