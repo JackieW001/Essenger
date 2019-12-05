@@ -1,10 +1,13 @@
 Thank you for downloading Essenger: The better Messenger (TM)
 
+Please use a virtual environment to use a clean environment for downloading
+packages. 
+
 Essenger requires some dependencies that you may need to install, listed below.
 If your system does not have one or more of the following
-packages, please use  `opam install <package>`. Please note that 
-it is important to download the packages in the order they are listed, especially the packages 
-listed after str. 
+packages, please use `opam install <package>`. Please note that 
+it is important to download the packages in the order they are listed, 
+especially the packages listed after str. 
 
 Essenger requires the following OCaml packages: 
   yojson
@@ -25,12 +28,4 @@ If you are looking around in server.ml please ignore the red squigglies.
 We think the merlin file doesn't recognize the cohttp-lwt-unix package
 yet the program runs perfectly fine.
 
-For MS1: 
-Right now the only pretty things we have to show is the user interface.
-When prompted, the username is master and the password is master. 
-We have a connection with Firebase, our online database that will be used
-to store converstations between two users, and are able to update and 
-retrieve information with it. However we have not yet integrated the backend
-server communication with our front end application. Feel free to poke around
-server.ml to see what we are doing on the backend side! 
 
