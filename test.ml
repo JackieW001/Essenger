@@ -57,11 +57,11 @@ let convo_tests =
         assert_equal ()
           (Server.add_msg "test2" "test1" "b") );
     "print convo between test2 and test1">:: (fun _ ->
-        assert_equal ()
-          (Server.get_conversation_history "test2" "test1" 5) );
+        assert_equal ["test2: b"; "test1: a"]
+          (Server.get_conversation_history "test2" "test1") );
     "print convo between test1 and test2 (should be same as previous)">:: (fun _ ->
-        assert_equal ()
-          (Server.get_conversation_history "test1" "test2" 5) );
+        assert_equal ["test2: b"; "test1: a"]
+          (Server.get_conversation_history "test1" "test2") );
     "delete convo and test users" >:: (fun _ ->
         assert_equal ()
           (Server.delete_conversation "test1" "test2"); 

@@ -420,7 +420,8 @@ let create_gc gc_name user_lst =
 let get_num_gc_msgs gc_name = 
   let num_msg = 
     Client.get 
-      (Uri.of_string (firebase^"/GroupChats/"^gc_name^"/num_msg/num_msg.json")) 
+      (Uri.of_string (firebase^"/GroupChats/"^gc_name^"/conversation/"^
+                      "num_msgs/num_msgs.json")) 
     |> return_body |> Lwt_main.run in
   if (substring_contains num_msg "null") then 0 else 
     num_msg |> clean_word |> int_of_string
@@ -459,6 +460,7 @@ let get_gc_history gc_name =
 (* Below is used for testing *)
 
 let ()= ();
+  add_gc_msg "special_surprise" "william" "hi";
   (* print_list (get_gc_history "special_surprise"); *) 
   (* create_gc "special_surprise" ["jackie";"william"];
      add_gc_msg "special_surprise" "jackie" "bye bye"; *)
