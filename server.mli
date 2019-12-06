@@ -78,3 +78,6 @@ val add_gc_msg : string -> string -> string -> unit
     from oldest to newest *)
 val get_gc_history : string -> string list 
 
+(** [delete_gc g] deletes group chat [g] *)
+val delete_gc : string -> unit
+

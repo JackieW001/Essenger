@@ -132,14 +132,24 @@ let conv_to_str_list (info: conv_info) =
 (** [gcjson_to_record] creates a record of a group chat *)
 let gcjson_to_record j = 
   let json = from_string j in 
-  {
-    conversation = build_gc_conv_list json; 
-    num_msgs = json |> member "conversation" |> member "num_msgs" 
-               |> member "num_msgs" |> to_string |> int_of_string; 
-    num_users = json |> member "num_users" |> member "num_users" 
-                |> to_string |> int_of_string; 
-    users = json|> member "users" |> to_list |> List.map get_user; 
-  }
+  try 
+    {
+      conversation = build_gc_conv_list json; 
+      num_msgs = json |> member "conversation" |> member "num_msgs" 
+                 |> member "num_msgs" |> to_string |> int_of_string; 
+      num_users = json |> member "num_users" |> member "num_users" 
+                  |> to_string |> int_of_string; 
+      users = json|> member "users" |> to_list |> List.map get_user; 
+    }
+  with 
+  | Yojson.Basic.Util.Type_error (a,b) -> 
+    {
+      conversation = [];
+      num_msgs = 0;
+      num_users = json |> member "num_users" |> member "num_users" 
+                  |> to_string |> int_of_string; 
+      users = json|> member "users" |> to_list |> List.map get_user;
+    }
 
 (** [gc_conv_to_str_list] converts group chat conversation in record to 
     string list *)
@@ -155,7 +165,7 @@ let gc_conv_to_str_list (info: gc_info) =
 (** [print_list] prints a list where each element is separated by new lines *)
 let rec print_list = function 
   | [] -> print_endline ""
-  | h::t -> print_endline (h^"\n"); print_list t 
+  | h::t -> print_endline (h ^ "\n"); print_list t 
 
 (** [clean_word] creates a substring of the first alphanumeric character
     to the last alphanumeric character (inclusively)  *)
@@ -452,11 +462,13 @@ let get_gc_history gc_name =
     let gc_conv_info = gcjson_to_record request in 
     gc_conv_to_str_list gc_conv_info
 
+let delete_gc gc_name = 
+  let _ = Client.delete 
+      (Uri.of_string (firebase^"/GroupChats/"^gc_name^".json")) in ()
 
 (* Below is used for testing *)
 
 let ()= (); 
-
   (* create_gc "special_surprise" ["jackie";"william"];
      add_gc_msg "special_surprise" "jackie" "bye bye";
      add_gc_msg "special_surprise" "william" "hi"; 
