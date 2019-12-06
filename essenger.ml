@@ -4,7 +4,7 @@ open Sha256
 
 (* Helper Functions *)
 
-let stickers = [(1,"(O-O)"); (2, "(\^o^/)")]
+let stickers = [(1,{|(O-O)|}); (2, {|(\^o^/)|})]
 
 let emojis = [
   ("happy", "\u{1F600}");
@@ -38,7 +38,6 @@ let rec print_emojis = function
     ANSITerminal.(print_string [white] (String.concat id [" "; "\n"]));
     print_emojis t
 
-
 (** [replace_spaces s] replaces all whitespaces in [s] with '_'. *)
 let replace_spaces = Str.global_replace (Str.regexp " ") "_"
 
@@ -50,7 +49,7 @@ let rec print_list = function
 (** [main] is the main interface for Essenger. It takes parsed commands from 
     the command module and processes them to perform the proper function as 
     specified by the command. *)
-let rec main current_user () = 
+let rec main current_user ()= 
   print_newline();
   ANSITerminal.(print_string [cyan] "\nEssenger\n");
   ANSITerminal.(print_string [white] 
@@ -76,8 +75,13 @@ let rec main current_user () =
         try
           ANSITerminal.(print_string [cyan] 
                           ("Getting message history with: " ^ r ^ "\n"));
-          Server.get_conversation_history current_user r 5; 
-          main current_user ()
+          if Server.user_exists r then 
+            (print_list (Server.get_conversation_history current_user r); 
+             main current_user ())
+          else 
+            (ANSITerminal.(print_string [red]
+                             ("\nUser " ^ r ^ " does not exist."));
+             main current_user ())
         with
         | Failure x -> 
           ANSITerminal.(print_string [red]
@@ -98,6 +102,9 @@ let rec main current_user () =
               @<username> : Gets your message history with <username>\n
               @<username> <message> : Sends <message> to user <username>\n
               @Friends or @friends : View who you've had conversations with.\n
+              @gc <gc_name> <username list> : Create a GroupChat with users 
+                  specified in <username list>. Every word separated by spaces
+                  after <gc_name> specifies a user to add to the GroupChat.\n
               @Logout or @logout : Log out of Essenger.\n");
       main current_user ()
     | Logout -> (* Logout From Account *) 
@@ -105,16 +112,30 @@ let rec main current_user () =
                       "\nLogging Out.\n");
       exit 0
     | Sticker -> 
-      ANSITerminal.(print_string [cyan] "\n Available stickers:\n");
+      ANSITerminal.(print_string [cyan] "\nAvailable stickers:\n");
       print_stickers stickers;
-      ANSITerminal.(print_string [cyan] "\n To send a sticker, enter: \n
+      ANSITerminal.(print_string [cyan] "\nTo send a sticker, enter: \n
       @username #[sticker number].");
       main current_user ()
     | Emojis ->
-      ANSITerminal.(print_string [cyan] "\n Available emojis: \n");
+      ANSITerminal.(print_string [cyan] "\nAvailable emojis: \n");
       print_emojis emojis;
-      ANSITerminal.(print_string [cyan] "\n To use an emoji, enter: \n @username #[emoji name].");
+      ANSITerminal.(print_string 
+                      [cyan] 
+                      "\nTo use an emoji, enter: \n @username #[emoji name].");
       main current_user ()
+    | GroupChat (n, ht) -> 
+      ANSITerminal.(print_string [cyan] ("\nCreating GroupChat "^n^".\n"));
+      if Server.gc_exists n then
+        (ANSITerminal.(print_string [red] ("\nGroupChat exists. Please choose "^
+                                           "another name. \n"));
+         main current_user ())
+      else  
+        (
+          Server.create_gc n (current_user :: ht);
+          ANSITerminal.(print_string [green] ("\nGroupChat "^n^" created.\n"));
+          main current_user ()
+        )
 
   with
   | Malformed -> print_string 
@@ -130,7 +151,19 @@ let rec main current_user () =
     [login] takes in user input and passes that information as a JSON to the server,
     which authenticates the login. If login fails, user is prompted to try again.*)
 let rec login () = 
-  print_newline ();
+  print_endline ({|
+
+ /$$$$$$$$  /$$$$$$  /$$$$$$  /$$$$$$$$ /$$   /$$  /$$$$$$  /$$$$$$$$ /$$$$$$$ 
+| $$_____/ /$$__  $$/$$__  $$| $$_____/| $$$ | $$ /$$__  $$| $$_____/| $$__  $$
+| $$      | $$  \__/ $$  \__/| $$      | $$$$| $$| $$  \__/| $$      | $$  \ $$
+| $$$$$   |  $$$$$$|  $$$$$$ | $$$$$   | $$ $$ $$| $$ /$$$$| $$$$$   | $$$$$$$/
+| $$__/    \____  $$\____  $$| $$__/   | $$  $$$$| $$|_  $$| $$__/   | $$__  $$
+| $$       /$$   \ $$/$$  \  $$| $$      | $$\   $$$| $$  \  $$| $$      | $$ "^
+                 " \\ $$
+| $$$$$$$$|  $$$$$$/  $$$$$$/| $$$$$$$$| $$ \   $$| $$$$$$/ | $$$$$$$$| $$  | $$
+|________/ \______/ \______/ |________/|__/  \__/ \______/ |________/|__/  |__/
+
+                                                                        |} );
   ANSITerminal.(print_string [cyan] 
                   "\nWelcome to Essenger, the Better Messenger.\n");
   ANSITerminal.(print_string [cyan] 
@@ -144,9 +177,6 @@ let rec login () =
     let username_input = replace_spaces (String.trim(read_line ())) in
     print_string "Enter your password: ";
     let password_input = String.trim(read_line ()) in
-    (* 
-    if authenticated, then main, else try again
-  *)
     if Server.auth username_input password_input then 
       (ANSITerminal.(erase Screen);
        ANSITerminal.(print_string [green] 

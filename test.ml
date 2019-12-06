@@ -49,6 +49,8 @@ let convo_tests =
         let _ = Server.conversation_exists "test1" "test2" in 
         let _ = Server.conversation_exists "test1" "test2" in 
         let _ = Server.conversation_exists "test1" "test2" in
+        let _ = Server.conversation_exists "test1" "test2" in 
+        let _ = Server.conversation_exists "test1" "test2" in
         () );
     "check if convo exists a bit after creation" >:: (fun _ ->
         assert_equal true
@@ -56,12 +58,12 @@ let convo_tests =
     "add message">:: (fun _ ->
         assert_equal ()
           (Server.add_msg "test2" "test1" "b") );
-    "print convo between test2 and test1">:: (fun _ ->
-        assert_equal ()
-          (Server.get_conversation_history "test2" "test1" 5) );
-    "print convo between test1 and test2 (should be same as previous)">:: (fun _ ->
-        assert_equal ()
-          (Server.get_conversation_history "test1" "test2" 5) );
+    "check convo between test2 and test1">:: (fun _ ->
+        assert_equal ["test2: b"; "test1: a"]
+          (Server.get_conversation_history "test2" "test1") );
+    "check convo between test1 and test2 (should be same as previous)">:: (fun _ ->
+        assert_equal ["test2: b"; "test1: a"]
+          (Server.get_conversation_history "test1" "test2") );
     "delete convo and test users" >:: (fun _ ->
         assert_equal ()
           (Server.delete_conversation "test1" "test2"); 
@@ -73,16 +75,85 @@ let convo_tests =
         let _ = Server.conversation_exists "test1" "test2" in 
         let _ = Server.conversation_exists "test1" "test2" in 
         let _ = Server.conversation_exists "test1" "test2" in
+        let _ = Server.conversation_exists "test1" "test2" in
+        let _ = Server.conversation_exists "test1" "test2" in
+        let _ = Server.conversation_exists "test1" "test2" in
         () );
     "check if convo exists a bit after deletion" >:: (fun _ ->
         assert_equal false
           (Server.conversation_exists "test1" "test2") );
   ]
 
+let gc_test = 
+  "init convo suite" >:::
+  [
+    "check if gc exists before creation" >:: (fun _ ->
+        assert_equal false
+          (Server.gc_exists "test_gc") );
+    "create test gc" >:: (fun _ ->
+        assert_equal ()
+          (Server.create_gc "test_gc" ["test1";"test2"]) );
+    (* this is used as a buffer so firebase has time to update  *)
+    "firebase buffer time" >:: (fun _ ->
+        let _ = Server.conversation_exists "test1" "test2" in 
+        let _ = Server.conversation_exists "test1" "test2" in 
+        let _ = Server.conversation_exists "test1" "test2" in 
+        let _ = Server.conversation_exists "test1" "test2" in
+        () );
+    "check if gc exists after creation" >:: (fun _ ->
+        assert_equal true
+          (Server.gc_exists "test_gc") );
+    "get gc users" >:: (fun _ ->
+        assert_equal ["test1"; "test2"]
+          (Server.get_gc_users "test_gc")); 
+    "add message" >:: (fun _ ->
+        assert_equal ()
+          (Server.add_gc_msg "test_gc" "test1" "this is test1 saying hi there!")); 
+    (* this is used as a buffer so firebase has time to update  *)
+    "firebase buffer time" >:: (fun _ ->
+        let _ = Server.get_gc_history "test_gc" in 
+        let _ = Server.get_gc_history "test_gc" in 
+        let _ = Server.get_gc_history "test_gc" in 
+        let _ = Server.get_gc_history "test_gc" in
+        () );
+    "check gc history after first message" >:: (fun _ ->
+        assert_equal ["test1: this is test1 saying hi there!"]
+          (Server.get_gc_history "test_gc")); 
+    "add message" >:: (fun _ ->
+        assert_equal ()
+          (Server.add_gc_msg "test_gc" "test2" "test2 says bye."));
+    (* this is used as a buffer so firebase has time to update  *)
+    "firebase buffer time" >:: (fun _ ->
+        let _ = Server.get_gc_history "test_gc" in 
+        let _ = Server.get_gc_history "test_gc" in 
+        let _ = Server.get_gc_history "test_gc" in 
+        let _ = Server.get_gc_history "test_gc" in
+        () );
+    "check gc history after second message" >:: (fun _ ->
+        assert_equal ["test2: test2 says bye."; 
+                      "test1: this is test1 saying hi there!"]
+          (Server.get_gc_history "test_gc")); 
+    "delete gc" >:: (fun _ ->
+        assert_equal ()
+          (Server.delete_gc "test_gc")); 
+    (* this is used as a buffer so firebase has time to update  *)
+    "firebase buffer time" >:: (fun _ ->
+        let _ = Server.gc_exists "test_gc" in 
+        let _ = Server.gc_exists "test_gc" in 
+        let _ = Server.gc_exists "test_gc" in 
+        let _ = Server.gc_exists "test_gc" in
+        () );
+    "check if gc exists after deletion" >:: (fun _ ->
+        assert_equal false
+          (Server.gc_exists "test_gc") );
+
+  ]
+
 let tests =
   [
     user_tests;
-    convo_tests;
+    convo_tests;  
+    gc_test; 
   ]
 
 let suite =

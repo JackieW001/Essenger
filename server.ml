@@ -24,6 +24,8 @@ type conv_info =
 
 type gc_info = 
   {
+    conversation: (sender * unit * message) list; 
+    num_msgs : int; 
     num_users : int; 
     users: string list; 
   }
@@ -42,10 +44,17 @@ let get_user j =
     a user in Essenger. *)
 let userjson_to_record j =
   let json = from_string j in
-  {
-    friends = json|> member "friends" |> to_list |> List.map get_user; 
-    password = json |> member "password" |> to_string;
-  }
+  try
+    {
+      friends = json|> member "friends" |> to_list |> List.map get_user; 
+      password = json |> member "password" |> to_string;
+    }
+  with 
+  | Yojson.Basic.Util.Type_error (a,b) -> 
+    {
+      friends = [];
+      password =  json |> member "password" |> to_string;
+    }
 
 (** [build_conv_list] adds all conversation data to a list *)
 let build_conv_list j = 
@@ -87,40 +96,76 @@ let build_msg_history j s =
   !acc
 
 (** [histjson_to_record] creates a record of a conversation history *)
-let histjson_to_record j s = 
+let histjson_to_record j = 
   let json = from_string j in 
   {
     num_msgs = json |> member "num_msg" |> member "num_msg" |> to_string 
                |> int_of_string;
-    conversation = build_msg_history json s;
+    conversation = build_conv_list json ;
   }
+
+(** [build_conv_list] adds all group chat conversation data to a list *)
+let build_gc_conv_list j = 
+  let num_msgs = j |> member "conversation" |> member "num_msgs" 
+                 |> member "num_msgs" |> to_string |> int_of_string  in 
+  let acc = ref [] in
+  for i = 0 to (num_msgs-1) do 
+    acc := ((j |> member "conversation" |> 
+             member (string_of_int i) |> member "sender" |> to_string), (),
+            (j |> member "conversation" |> 
+             member (string_of_int i) |> member "message" |> to_string)) 
+           :: !acc;
+  done;
+  !acc
+
+
+(** [conv_to_str_list] converts conversation in record to string list *)
+let conv_to_str_list (info: conv_info) = 
+  let msgs = info.conversation in 
+  let rec format_msgs msgs acc = 
+    match msgs with 
+    | [] -> acc
+    | (s,_,m)::t -> format_msgs t ((s ^ ": " ^ m)::acc)
+  in 
+  (format_msgs msgs []) |> List.rev 
 
 (** [gcjson_to_record] creates a record of a group chat *)
 let gcjson_to_record j = 
   let json = from_string j in 
-  {
-    num_users = json |> member "num_users" |> member "num_users" 
-                |> to_string |> int_of_string; 
-    users = json|> member "users" |> to_list |> List.map get_user; 
-  }
+  try 
+    {
+      conversation = build_gc_conv_list json; 
+      num_msgs = json |> member "conversation" |> member "num_msgs" 
+                 |> member "num_msgs" |> to_string |> int_of_string; 
+      num_users = json |> member "num_users" |> member "num_users" 
+                  |> to_string |> int_of_string; 
+      users = json|> member "users" |> to_list |> List.map get_user; 
+    }
+  with 
+  | Yojson.Basic.Util.Type_error (a,b) -> 
+    {
+      conversation = [];
+      num_msgs = 0;
+      num_users = json |> member "num_users" |> member "num_users" 
+                  |> to_string |> int_of_string; 
+      users = json|> member "users" |> to_list |> List.map get_user;
+    }
 
-(** [print_conv_info] prints the conversations of a [conv_info] record *)
-let print_conv_info info = 
-  let msgs = List.rev info.conversation in 
-  print_endline "\n";
-  let rec print_msgs msgs = 
+(** [gc_conv_to_str_list] converts group chat conversation in record to 
+    string list *)
+let gc_conv_to_str_list (info: gc_info) = 
+  let msgs = info.conversation in 
+  let rec format_msgs msgs acc = 
     match msgs with 
-    | [] -> print_endline ""
-    | (s,_,m)::t -> print_endline (s ^ ": " ^ m ^ "\n");
-      print_msgs t
+    | [] -> acc
+    | (s,_,m)::t -> format_msgs t ((s ^ ": " ^ m )::acc)
   in 
-  print_msgs msgs;
-  print_endline "----------------------------------"
+  (format_msgs msgs []) |> List.rev
 
 (** [print_list] prints a list where each element is separated by new lines *)
 let rec print_list = function 
   | [] -> print_endline ""
-  | h::t -> print_endline h; print_list t 
+  | h::t -> print_endline (h ^ "\n"); print_list t 
 
 (** [clean_word] creates a substring of the first alphanumeric character
     to the last alphanumeric character (inclusively)  *)
@@ -159,7 +204,6 @@ let create_user user pass =
       Uri.of_string (firebase^"/Users/"^user^".json")) 
           |> return_body |> Lwt_main.run in ()
 
-
 (** [substring_contains s1 s2] returns true if s2 is a substring in s1. *)
 let substring_contains s1 s2 = 
   let regexp = Str.regexp_string s2 in
@@ -183,7 +227,6 @@ let auth user pass =
     (userjson_to_record user_info).password = hashed_password 
   with
   | Yojson.Basic.Util.Type_error (a,b) -> false
-
 
 (******** FRIEND FUNCTIONS ***********)
 
@@ -227,6 +270,7 @@ let delete_user user1 =
   let _ = Client.delete 
       (Uri.of_string (firebase^"/Users/"^user1^".json")) in
   ()
+
 (******** MESSAGE FUNCTIONS ***********)
 
 (** [sort_users] takes in two users and returns tuple of users from smallest
@@ -282,9 +326,9 @@ let get_msg user1 user2 i =
   if (substring_contains data "null") then failwith "Message not found" else 
     data
 
-(** [get_conversation_history] returns the conversation history with [i] number of 
-    max entries between [user1] and [user2] *)
-let get_conversation_history user1 user2 i = 
+(** [get_conversation_history] returns the conversation history between 
+    [user1] and [user2] *)
+let get_conversation_history user1 user2 = 
   let users = sort_users user1 user2 in
   let request = 
     Client.get 
@@ -292,9 +336,8 @@ let get_conversation_history user1 user2 i =
          (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^".json")) 
     |> return_body |> Lwt_main.run in 
   if (substring_contains request "null") then failwith "No message history" else
-    let conv_info = histjson_to_record request i in 
-    print_conv_info conv_info; 
-    ()
+    let conv_info = histjson_to_record request in 
+    conv_to_str_list conv_info
 
 (** [get_conversation] returns the conversation between 
     [user1] and [user2] *)
@@ -304,7 +347,6 @@ let get_conversation user1 user2 =
     (Uri.of_string 
        (firebase^"/Conversations/"^(fst users)^"_to_"^(snd users)^".json")) 
   |> return_body 
-
 
 (** [conversation_exists] returns if a conversation exists between 
     [user1] and [user2] *)
@@ -330,6 +372,15 @@ let rec string_of_lst_helper = function
 (** [string_of_lst] converts list [lst] to a string *)
 let rec string_of_lst lst =  
   "["^(string_of_lst_helper lst)^"]"
+
+(** [retrieve_gc] retrieves group chat from database *)
+let retrieve_gc gc_name = 
+  Client.get (Uri.of_string (firebase^"/GroupChats/"^gc_name^".json")) 
+  |> return_body |> Lwt_main.run
+
+let gc_exists gc_name = 
+  let (body_string:string) = retrieve_gc gc_name in 
+  not (substring_contains body_string "null")
 
 let get_gc_users gc_name = 
   let json = Client.get 
@@ -371,22 +422,65 @@ let rec add_users_to_gc gc_name user_lst =
   | h::t -> add_user_to_gc gc_name h; add_users_to_gc gc_name t 
 
 let create_gc gc_name user_lst = 
-  let response = Client.get 
-      (Uri.of_string (firebase^"/GroupChats/"^gc_name^".json")) 
-                 |> return_body |> Lwt_main.run in 
-  if (substring_contains response "null") then 
-    add_users_to_gc gc_name user_lst
-  else failwith "Group Chat name already exists."
+  add_users_to_gc gc_name user_lst
 
+(** [get_num_gc_msgs] returns the number of messages in a group chat *)
+let get_num_gc_msgs gc_name = 
+  let num_msg = 
+    Client.get 
+      (Uri.of_string (firebase^"/GroupChats/"^gc_name^"/conversation/"^
+                      "num_msgs/num_msgs.json")) 
+    |> return_body |> Lwt_main.run in
+  if (substring_contains num_msg "null") then 0 else 
+    num_msg |> clean_word |> int_of_string
+
+(** [inc_num_gc_msgs] increments the number of messages in a group chat by 1 *)
+let inc_num_gc_msgs gc_name =
+  let new_num = ((get_num_gc_msgs gc_name)+ 1) |> string_of_int in 
+  let data = Cohttp_lwt.Body.of_string ("{\"num_msgs\":\""^new_num^"\"}") in 
+  let _ = Client.put ~body: data 
+      (Uri.of_string (firebase^"/GroupChats/"^gc_name^"/conversation/num_msgs.json")) 
+          |> return_body |> Lwt_main.run in 
+  ()
+
+let add_gc_msg gc_name user msg =
+  let next_msg_num = (get_num_gc_msgs gc_name)|> string_of_int in
+  let data = Cohttp_lwt.Body.of_string ("{\"sender\":\""^user^
+                                        "\",\"message\":\""^msg^"\"}") in 
+  let _ = Client.put ~body:data 
+      (Uri.of_string (firebase^"/GroupChats/"^gc_name^"/conversation/"^next_msg_num^".json"))
+          |> return_body |> Lwt_main.run in 
+  inc_num_gc_msgs gc_name; ()
+
+let get_gc_history gc_name = 
+  let request = 
+    Client.get 
+      (Uri.of_string 
+         (firebase^"/GroupChats/"^gc_name^".json")) 
+    |> return_body |> Lwt_main.run in 
+  if (substring_contains request "null") then failwith "No message history" else
+    let gc_conv_info = gcjson_to_record request in 
+    gc_conv_to_str_list gc_conv_info
+
+let delete_gc gc_name = 
+  let _ = Client.delete 
+      (Uri.of_string (firebase^"/GroupChats/"^gc_name^".json")) in ()
 
 (* Below is used for testing *)
 
-let ()= ()
-(* 
+let ()= (); 
+  (* create_gc "special_surprise" ["jackie";"william"];
+     add_gc_msg "special_surprise" "jackie" "bye bye";
+     add_gc_msg "special_surprise" "william" "hi"; 
+     print_list (get_gc_history "special_surprise"); *) 
+  (* create_gc "special_surprise" ["jackie";"william"];
+     add_gc_msg "special_surprise" "jackie" "bye bye"; *)
+
+  (* 
   get_gc_users "second chat" |> print_list;
   create_gc "first chat" [];
   *)
-(* create_gc "first chat" ["jackie";"banpreet"]; *)
+  (* create_gc "first chat" ["jackie";"banpreet"]; *)
 (*
   print_endline (string_of_lst [""]);
   print_endline (string_of_lst ["hello";"hi"]);
@@ -395,26 +489,26 @@ let ()= ()
   add_friend "test" "jackie";
     add_friend "test" "banpreet";
     *)
-(*get_friends "test" |> print_list;*)
-(*add_msg "ashneel" "beep" "hello there"; *)
+  (*get_friends "test" |> print_list;*)
+  (*add_msg "ashneel" "beep" "hello there"; *)
 (*
   get_num_friends "ashneel" |> string_of_int |> print_endline;
   add_friend "ashneel" "jackie";
   get_num_friends "ashneel" |> string_of_int |> print_endline;
   add_friend "ashneel" "michelle";
   *)
-(* inc_num_friends "ashneel"; *)
-(*add_friend "ashneel" "jackie";
-  get_friends "ashneel";*)
-(* get_conversation_history "jackie" "ashneel" 5; *)
-(* TESTING ADDING NEW MESSAGES TO FIREBASE *)
-(* print_endline(get_num_msgs "bob" "michael" |> string_of_int); *)
-(*inc_num_msgs "jackie" "banpreet" *)
-(*print_endline((get_num_msgs "jackie" "banpreet") |> string_of_int);*)
-(*  TESTING DELETING A USER
-    let deleted_user = Lwt_main.run (delete_user "michael") in 
-    print_endline ("Received body\n" ^ deleted_user);
-    let deleted_conversation = 
-    Lwt_main.run (delete_conversation "bob" "michael") in
-    print_endline ("Received body\n" ^ deleted_conversation);
-*)
+  (* inc_num_friends "ashneel"; *)
+  (*add_friend "ashneel" "jackie";
+    get_friends "ashneel";*)
+  (* get_conversation_history "jackie" "ashneel" 5; *)
+  (* TESTING ADDING NEW MESSAGES TO FIREBASE *)
+  (* print_endline(get_num_msgs "bob" "michael" |> string_of_int); *)
+  (*inc_num_msgs "jackie" "banpreet" *)
+  (*print_endline((get_num_msgs "jackie" "banpreet") |> string_of_int);*)
+  (*  TESTING DELETING A USER
+      let deleted_user = Lwt_main.run (delete_user "michael") in 
+      print_endline ("Received body\n" ^ deleted_user);
+      let deleted_conversation = 
+      Lwt_main.run (delete_conversation "bob" "michael") in
+      print_endline ("Received body\n" ^ deleted_conversation);
+  *)
