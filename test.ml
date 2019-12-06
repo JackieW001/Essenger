@@ -2,7 +2,39 @@ open OUnit2
 open Server
 
 (* 
-  WRITE TEST COMMENT PARAGRAPH
+  These test cases test the interaction between our [server.ml] file
+  and Firebase. Specifically, we check if mutating users, group chats,
+  and conversations are handled properly. 
+  Note: gc stands for group chat
+  For each individual test suite (user_test, convo_test, or gc_tests), we 
+  check if the target (user, convo, or gc) is 
+  1. Non existent since it hasn't been created yet
+  2. Created and added into Firebase
+  3. Existent, since we just created the target
+  4. Target specific functions that will be discussed afterwards
+  5. Deleted from Firebase
+  6. Non existent since we just deleted the target
+
+Target specific functions
+user
+  - auth: check to make sure authentification is done properly. Specifically, 
+  a user can not login with an incorrect password
+convo 
+  - add_msg: adds message to conversation between two users in firebase
+  - get_conversation_history: checks if a list of strings with the newest
+  conversations being at the front of the list is returned
+gc 
+  - add_gc_msg: adds message to group chat in firebase
+  - get_gc_history: checks if a list of strings with the newest
+  conversations being at the front of the list is returned
+
+Tests with a comment above them are used for buffer time so that Firebase
+has time to update. When running this test file, tests involving deletions 
+(i.e. deleting information in Firebase). This means that Firebase was not
+updated in time of the function call. Although the test case may fail, 
+the target is indeed deleted from Firebase; the function call was just run 
+too early. To solve this issue, we added some "dummy" Firebase calls so
+that Firebase has time to update. 
 *)
 
 let user_tests = 
