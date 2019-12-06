@@ -127,7 +127,7 @@ let conv_to_str_list (info: conv_info) =
     | [] -> acc
     | (s,_,m)::t -> format_msgs t ((s ^ ": " ^ m)::acc)
   in 
-  format_msgs msgs []
+  (format_msgs msgs []) |> List.rev 
 
 (** [gcjson_to_record] creates a record of a group chat *)
 let gcjson_to_record j = 
@@ -150,7 +150,7 @@ let gc_conv_to_str_list (info: gc_info) =
     | [] -> acc
     | (s,_,m)::t -> format_msgs t ((s ^ ": " ^ m )::acc)
   in 
-  format_msgs msgs []
+  (format_msgs msgs []) |> List.rev
 
 (** [print_list] prints a list where each element is separated by new lines *)
 let rec print_list = function 
@@ -214,8 +214,6 @@ let auth user pass =
     let init_ctx = init () in 
     update_string init_ctx pass; 
     let hashed_password = to_hex (finalize init_ctx) in
-    print_endline (hashed_password);
-    print_endline ((userjson_to_record user_info).password);
     (userjson_to_record user_info).password = hashed_password 
   with
   | Yojson.Basic.Util.Type_error (a,b) -> false

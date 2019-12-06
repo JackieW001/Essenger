@@ -57,10 +57,10 @@ let convo_tests =
         assert_equal ()
           (Server.add_msg "test2" "test1" "b") );
     "check convo between test2 and test1">:: (fun _ ->
-        assert_equal ["test1: a"; "test2: b"]
+        assert_equal ["test2: b"; "test1: a"]
           (Server.get_conversation_history "test2" "test1") );
     "check convo between test1 and test2 (should be same as previous)">:: (fun _ ->
-        assert_equal ["test1: a"; "test2: b"]
+        assert_equal ["test2: b"; "test1: a"]
           (Server.get_conversation_history "test1" "test2") );
     "delete convo and test users" >:: (fun _ ->
         assert_equal ()
@@ -74,6 +74,7 @@ let convo_tests =
         let _ = Server.conversation_exists "test1" "test2" in 
         let _ = Server.conversation_exists "test1" "test2" in
         let _ = Server.conversation_exists "test1" "test2" in
+        let _ = Server.conversation_exists "test1" "test2" in
         () );
     "check if convo exists a bit after deletion" >:: (fun _ ->
         assert_equal false
@@ -82,7 +83,7 @@ let convo_tests =
 
 let tests =
   [
-    (* user_tests; *)
+    user_tests;
     convo_tests;
   ]
 
@@ -91,4 +92,4 @@ let suite =
     tests
   ]
 
-let _ = print_endline "in tests" ; run_test_tt_main suite
+let _ = run_test_tt_main suite
