@@ -1,3 +1,9 @@
+(** 
+   The backbone storage system for Essenger. 
+   The database Essenger uses is Google's Firebase. Using REST API calls,
+   Essenger is able to query, update, and delete data from Firebase. 
+*)
+
 (** [sender] represents the username of the sender of a message. *)
 type sender = string 
 
