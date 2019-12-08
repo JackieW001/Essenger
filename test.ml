@@ -185,9 +185,9 @@ let gc_test =
 
 let tests =
   [
-    (* user_tests; *) 
+    user_tests;  
     convo_tests;  
-    (* gc_test; *) 
+    gc_test;
   ]
 
 let suite =
