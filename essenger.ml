@@ -55,14 +55,17 @@ let rec print_list = function
   | [] -> print_endline ""
   | h::t -> print_endline h; print_list t 
 
+(** [arr_of_board arr i] returns an array representation of a the board string. *)
 let rec arr_of_board arr i = function
   | [] -> arr
   | h::t -> arr.(i) <- h; arr_of_board arr (i+1) t
 
+(** [list_of_moves lst] returns a list representation of the user moves string. *)
 let rec list_of_moves lst = function
   | [] -> lst
   | h::t -> list_of_moves ((int_of_string h)::lst) t
 
+(** [parse_game_string arr i] returns an array representation of the game. *)
 let rec parse_game_string arr i = function
   | [] -> arr
   | h::t -> (
@@ -73,6 +76,7 @@ let rec parse_game_string arr i = function
       parse_game_string arr (i+1) t
     )
 
+(** [game_of_string s] returns a game of type [Tictactoe.game].*)
 let game_of_string s = 
   let split_game = Str.split (Str.regexp "\\[ \n]\\") s in
   let game_array = parse_game_string [|""; ""; ""; "";""; ""; ""|] 0 split_game in
@@ -214,7 +218,6 @@ let rec main current_user ()=
           ANSITerminal.(print_string [green] ("\nGroupChat "^n^" created.\n"));
           main current_user ()
         )
-        <<<<<<< HEAD
     | Tictactoe (user, newgame) -> (
         if (newgame = "new") then (
           ANSITerminal.(print_string [cyan] ("Starting Tic Tac Toe with " ^ user));
@@ -238,7 +241,6 @@ let rec main current_user ()=
         )
       )
 
-        =======
     | GroupChatGet n -> 
       if valid_gc_member n current_user then
         ( 
@@ -289,7 +291,6 @@ let rec main current_user ()=
                          ("\nYou are not a member of this GroupChat.\n"));
          main current_user ()
         )
-        >>>>>>> 312e78ee5c22f825bf99e38954cf97bdb481c9ba
   with
   | Malformed -> print_string (
       "Invalid input. Please try again. " ^ 
