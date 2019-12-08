@@ -291,6 +291,7 @@ let delete_notification_from_user user1 user2 =
                       ".json")) in
   () 
 
+(** [parse_for_users] cleans string [s] to only have usernames *)
 let parse_for_users s = 
   let splitter = Str.regexp("@") in 
   (Str.split splitter s) |> List.tl |> List.map (fun x -> 
