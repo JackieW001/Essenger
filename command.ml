@@ -11,6 +11,7 @@ type command =
   | Sticker
   | Emojis
   | GroupChat of string * (username list)
+  | Tictactoe of username * string
 
 exception Empty
 
@@ -20,8 +21,11 @@ exception Malformed
 exception UnknownUser
 *)
 let stickers = [
-  (1,{|(O-O)|}); 
-  (2, {|(\^o^/)|})
+  (1, {|(O-O)|}); 
+  (2, {|(\^o^/)|});
+  (3, {|( .o.)|});
+  (4, {|( .-. )|});
+  (5, {|( -.- )|})
 ]
 
 let emojis = [
@@ -44,10 +48,14 @@ let emojis = [
   ("pig", "\u{1F437}")
 ]
 
+(** [get_emoji id] finds the requested emoji by searching the emoji list for the 
+    emoji name [id] that the user inputted. *)
 let rec get_emoji id = function
   | [] -> "[emoji]"
   | (i, e)::t -> if (id=i) then e else get_emoji id t
 
+(** [get_sticker i] finds the sticker by searching the list for the number that
+    the user inputted.  *)
 let rec get_sticker i = function
   | [] -> "[sticker]" (** sticker not found *)
   | (id, s)::t -> if (id = i) then s else get_sticker i t
@@ -91,6 +99,14 @@ let parse input =
          comm = "Emojis" then Emojis
       else
       if comm = "gc" then GroupChat ((mess |> List.hd) ,(mess |> List.tl))
+      else
+      if comm = "tictactoe" || comm = "TicTacToe" || comm = "Tictactoe" then (
+        try let newgame = (mess |> List.rev |> List.hd) in
+          if newgame = "new" then Tictactoe ((mess |> List.hd), "new") 
+          else Tictactoe ((mess |> List.hd), "")
+        with 
+        | hd -> Tictactoe ((mess |> List.hd), "")
+      )
       else
       if List.length mess > 0 
       then 

@@ -1,4 +1,4 @@
-MODULES=command essenger server authors
+MODULES=command essenger server authors tictactoe
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)

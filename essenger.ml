@@ -4,7 +4,13 @@ open Sha256
 
 (* Helper Functions *)
 
-let stickers = [(1,{|(O-O)|}); (2, {|(\^o^/)|})]
+let stickers = [
+  (1, {|(O-O)|}); 
+  (2, {|(\^o^/)|});
+  (3, {|( .o.)|});
+  (4, {|( .-. )|});
+  (5, {|( -.- )|})
+]
 
 let emojis = [
   ("happy", "\u{1F600}");
@@ -26,12 +32,15 @@ let emojis = [
   ("pig", "\u{1F437}")
 ]
 
+(** [print_stickers] prints the list of available stickers and each associated 
+    number. *)
 let rec print_stickers = function
   | [] -> ANSITerminal.(print_string [cyan] "")
   | (id, s)::t -> ANSITerminal.(print_string [white] s); 
     ANSITerminal.(print_string [cyan] (String.concat (string_of_int id) [" "; "\n"]));
     print_stickers t
 
+(** [print_emojis] prints the list of available emojis and each associated name.*)
 let rec print_emojis = function
   | [] -> ANSITerminal.(print_string [white] "")
   | (id, e)::t -> ANSITerminal.(print_string [white] e);
@@ -45,6 +54,41 @@ let replace_spaces = Str.global_replace (Str.regexp " ") "_"
 let rec print_list = function 
   | [] -> print_endline ""
   | h::t -> print_endline h; print_list t 
+
+let rec arr_of_board arr i = function
+  | [] -> arr
+  | h::t -> arr.(i) <- h; arr_of_board arr (i+1) t
+
+let rec list_of_moves lst = function
+  | [] -> lst
+  | h::t -> list_of_moves ((int_of_string h)::lst) t
+
+let rec parse_game_string arr i = function
+  | [] -> arr
+  | h::t -> (
+      let index = Str.search_forward (Str.regexp "\\((:\w*\n))\\") h 0 in 
+      let matched = String.sub h (index+1) (String.length h - (index+1)) in 
+      let value = Str.matched_string matched in
+      arr.(i) <- value;
+      parse_game_string arr (i+1) t
+    )
+
+let game_of_string s = 
+  let split_game = Str.split (Str.regexp "\\[ \n]\\") s in
+  let game_array = parse_game_string [|""; ""; ""; "";""; ""; ""|] 0 split_game in
+  let game : Tictactoe.game = {
+    u0 = game_array.(0);
+    u1 = game_array.(1);
+    state = ref (int_of_string game_array.(2));
+    board = ref (Str.split (Str.regexp "\\[;]\\") game_array.(3) 
+                 |> arr_of_board [|""; ""; ""; "";""; ""; ""; ""; ""|] 0);
+    u0_moves = ref ((Str.split (Str.regexp "\\[;]\\") game_array.(4))
+                    |> list_of_moves []);
+    u1_moves = ref ((Str.split (Str.regexp "\\[;]\\") game_array.(5))
+                    |> list_of_moves []);
+    win = ref (bool_of_string game_array.(6))
+  } in
+  game
 
 (** [main] is the main interface for Essenger. It takes parsed commands from 
     the command module and processes them to perform the proper function as 
@@ -136,6 +180,28 @@ let rec main current_user ()=
           ANSITerminal.(print_string [green] ("\nGroupChat "^n^" created.\n"));
           main current_user ()
         )
+    | Tictactoe (user, newgame) -> (
+        if (newgame = "new") then (
+          ANSITerminal.(print_string [cyan] ("Starting Tic Tac Toe with " ^ user));
+          let game = Tictactoe.intro current_user user in
+          if (Server.user_exists user) then (
+            ANSITerminal.(print_string [cyan] 
+                            ("Recipient: " ^ user ^ "\nBoard: "));
+            (!(game.board) |> Tictactoe.print_board));
+          Server.add_msg current_user user (game |> Tictactoe.string_of_game);
+          main current_user ()
+        ) else (
+          ANSITerminal.(print_string [cyan] ("Continuing Tic Tac Toe with " ^ user));
+          let game_string = "" in
+          let game = Tictactoe.move (game_of_string game_string) in
+          if (Server.user_exists user) then (
+            ANSITerminal.(print_string [cyan] 
+                            ("Recipient: " ^ user ^ "\nBoard: "));
+            (!(game.board) |> Tictactoe.print_board));
+          Server.add_msg current_user user (game |> Tictactoe.string_of_game);
+          main current_user ()
+        )
+      )
 
   with
   | Malformed -> print_string 

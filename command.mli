@@ -32,6 +32,7 @@ type command =
   | Sticker
   | Emojis
   | GroupChat of string * (username list)
+  | Tictactoe of username * string
 
 (** Raised when an empty command is entered. *)
 exception Empty
