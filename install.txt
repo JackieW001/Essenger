@@ -1,8 +1,5 @@
 Thank you for downloading Essenger: The better Messenger (TM)
 
-Please use a virtual environment to use a clean environment for downloading
-packages. 
-
 Essenger requires some dependencies that you may need to install, listed below.
 If your system does not have one or more of the following
 packages, please use `opam install <package>`. Please note that 
@@ -20,6 +17,15 @@ Essenger requires the following OCaml packages:
   cohttp
   cohttp-lwt
   cohttp-lwt-unix 
+
+If you are running on WSL and run into an ssl or tls error, run the following
+two commands: 
+  `sudo apt-get install pkg-config`
+  `sudo apt-get install libssl-dev`
+
+If you are on MacOS and run into an ssl or tls error, use the 3110 virtual
+environment, since it provides a clean OCaml environment, and download the
+previous packages. 
 
 Once you have downloaded the required packages, run `make essenger` to run
 Essenger. Please ignore the warnings. Have fun chatting!
