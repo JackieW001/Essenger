@@ -69,7 +69,7 @@ let rec list_of_moves lst = function
 let rec parse_game_string arr i = function
   | [] -> arr
   | h::t -> (
-      let index = Str.search_forward (Str.regexp "\\((:\w*\n))\\") h 0 in 
+      let index = Str.search_forward (Str.regexp {|\\((:\w*\n))\\|}) h 0 in 
       let matched = String.sub h (index+1) (String.length h - (index+1)) in 
       let value = Str.matched_string matched in
       arr.(i) <- value;
