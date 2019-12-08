@@ -370,7 +370,7 @@ let get_conversation_history user1 user2 =
     |> return_body |> Lwt_main.run in 
   if (substring_contains request "null") then failwith "No message history" else
     let conv_info = histjson_to_record request in 
-    delete_notification_from_user user1 user2; 
+    delete_notification_from_user user2 user1; 
     conv_to_str_list conv_info
 
 

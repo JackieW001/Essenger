@@ -59,6 +59,10 @@ let valid_gc_member gc n =
 let rec main current_user ()= 
   print_newline();
   ANSITerminal.(print_string [cyan] "\nEssenger\n");
+  if (List.length (get_notifications current_user) != 0) then
+    (ANSITerminal.(print_string [cyan] "\nYou have new messages from: \n");
+     print_list (get_notifications current_user);)
+  else print_string "";
   ANSITerminal.(print_string [white] 
                   "Type @Help or @help to view supported commands.\n");
   print_string "> ";
@@ -68,28 +72,29 @@ let rec main current_user ()=
     | Send (r,m) -> (* Send message to server *) 
       if (Server.user_exists r) then (
         ANSITerminal.(print_string [cyan] 
-                        ("Recipient: " ^ r ^ "\nMessage: " ^ m));
+                        ("Recipient: " ^ r ^ "\nMessage: " ^ m ^ "\n"));
         Server.add_msg current_user r m;
         main current_user ()
       )
       else (
         ANSITerminal.(print_string [red]
-                        ("\nUser \""^r^"\" does not exist."));
+                        ("\nUser \""^r^"\" does not exist.\n"));
         main current_user ()
       )
     | Get r ->( (* Get message history *) 
         try
           if Server.user_exists r then 
-            (print_list (Server.get_conversation_history current_user r); 
+            (print_list (List.rev 
+                           (Server.get_conversation_history current_user r)); 
              main current_user ())
           else 
             (ANSITerminal.(print_string [red]
-                             ("\nUser " ^ r ^ " does not exist."));
+                             ("\nUser " ^ r ^ " does not exist.\n"));
              main current_user ())
         with
         | Failure x -> 
           ANSITerminal.(print_string [red]
-                          ("\nYou have no message history with " ^ r));
+                          ("\nYou have no message history with " ^ r ^ "\n"));
           main current_user ())
     | Friends -> (* Get List of friends *) 
       print_endline "";
@@ -146,14 +151,14 @@ let rec main current_user ()=
       ANSITerminal.(print_string [cyan] "\nAvailable stickers:\n");
       print_stickers stickers;
       ANSITerminal.(print_string [cyan] ("\nTo send a sticker, enter: "^
-                                         "\n@username #[sticker number]."));
+                                         "\n@username #[sticker number].\n"));
       main current_user ()
     | Emojis ->
       ANSITerminal.(print_string [cyan] "\nAvailable emojis: \n");
       print_emojis emojis;
       ANSITerminal.(print_string 
                       [cyan] 
-                      "\nTo use an emoji, enter: \n@username #[emoji name].");
+                      "\nTo use an emoji, enter: \n@username #[emoji name].\n");
       main current_user ()
     | GroupChat (n, ht) -> 
       if Server.gc_exists n then
@@ -172,7 +177,7 @@ let rec main current_user ()=
           ANSITerminal.(print_string [cyan] "\nMembers: \n");
           print_list (get_gc_users n);
           ANSITerminal.(print_string [cyan] "Messages: \n");
-          print_list (get_gc_history n);
+          print_list (get_gc_history n |> List.rev);
           main current_user ())
       else 
       if (not (gc_exists n)) then
@@ -187,7 +192,7 @@ let rec main current_user ()=
       if valid_gc_member n current_user then
         (add_gc_msg n current_user m;
          ANSITerminal.(print_string [cyan] 
-                         ("GroupChat: " ^ n ^ "\nMessage: " ^ m));
+                         ("GroupChat: " ^ n ^ "\nMessage: " ^ m ^"\n"));
          main current_user ())
       else 
       if (not (gc_exists n)) then 
