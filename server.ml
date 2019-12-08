@@ -438,7 +438,11 @@ let add_user_to_gc gc_name user =
 let rec add_users_to_gc gc_name user_lst = 
   match user_lst with 
   | [] -> ()
-  | h::t -> add_user_to_gc gc_name h; add_users_to_gc gc_name t 
+  | h::t -> 
+    if (List.mem h (get_gc_users gc_name)) then
+      add_users_to_gc gc_name t
+    else
+      add_user_to_gc gc_name h; add_users_to_gc gc_name t 
 
 let create_gc gc_name user_lst = 
   add_users_to_gc gc_name user_lst
