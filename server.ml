@@ -271,6 +271,26 @@ let delete_user user1 =
       (Uri.of_string (firebase^"/Users/"^user1^".json")) in
   ()
 
+(******** NOTIFICATION FUNCTIONS *)
+
+(** [update_notification_from_user] adds [user1], who sent a message to 
+    [user2], to [user2]'s list of notifications *)
+let update_notification_from_user user1 user2 = 
+  let data = Cohttp_lwt.Body.of_string ("{\"blep\": \"\"}") in 
+  let body = Client.put ~body:data 
+      (Uri.of_string (firebase^"/Users/"^user2^"/notifications/users/@"
+                      ^user1^".json"))
+             |> return_body |> Lwt_main.run in
+  ()
+
+let get_notifications user = 
+  let not = Client.get
+      (Uri.of_string (firebase^"/Users/"^user^"/notifications/users/.json"))
+            |> return_body |> Lwt_main.run in 
+  if (substring_contains not "null") then [] else 
+    (print_endline not; 
+     [])
+
 (******** MESSAGE FUNCTIONS ***********)
 
 (** [sort_users] takes in two users and returns tuple of users from smallest
@@ -300,7 +320,6 @@ let inc_num_msgs user1 user2 =
           |> return_body |> Lwt_main.run in 
   ()
 
-(** [add_msg] adds a message [msg] to conversation between [user1] and [user2] *)
 let add_msg user1 user2 msg =
   let users = sort_users user1 user2 in 
   let next_msg_num = (get_num_msgs user1 user2) + 1 |> string_of_int in
@@ -312,6 +331,7 @@ let add_msg user1 user2 msg =
                       "_to_"^(snd users)^"/"^next_msg_num^".json"))
           |> return_body |> Lwt_main.run in 
   inc_num_msgs user1 user2; 
+  update_notification_from_user user1 user2; 
   if next_msg_num = "1" then (add_friend user1 user2;add_friend user2 user1) else 
     ()
 
@@ -415,7 +435,6 @@ let add_user_to_gc gc_name user =
       (Uri.of_string (firebase^"/GroupChats/"^gc_name^"/users/"^num_users^".json")) in 
   inc_num_users gc_name
 
-(** [add_users_to_gc] adds a list of users to [gc_name] *)
 let rec add_users_to_gc gc_name user_lst = 
   match user_lst with 
   | [] -> ()
@@ -469,6 +488,9 @@ let delete_gc gc_name =
 (* Below is used for testing *)
 
 let ()= (); 
+  update_notification_from_user "test1" "test2"; 
+  update_notification_from_user "test3" "test2"; 
+  print_list (get_notifications "test2"); 
   (* create_gc "special_surprise" ["jackie";"william"];
      add_gc_msg "special_surprise" "jackie" "bye bye";
      add_gc_msg "special_surprise" "william" "hi"; 
