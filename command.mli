@@ -16,7 +16,7 @@ type username = string
     [Help] returns the help menu.
     [Friends] returns a list of users the current user has conversations with. 
     [Logout] exits Essenger. 
-    [GroupC (name, users)] creates a groupchat with [name] with list [users] 
+    [GroupChat (name, users)] creates a groupchat with [name] with list [users] 
     in that group chat.
 
     Future Commands:
@@ -33,6 +33,9 @@ type command =
   | Emojis
   | GroupChat of string * (username list)
   | Tictactoe of username * string
+  | GroupChatGet of string
+  | GroupChatSend of string * message
+  | GroupChatAdd of string * (username list)
 
 (** Raised when an empty command is entered. *)
 exception Empty

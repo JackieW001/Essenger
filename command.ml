@@ -12,6 +12,9 @@ type command =
   | Emojis
   | GroupChat of string * (username list)
   | Tictactoe of username * string
+  | GroupChatGet of string
+  | GroupChatSend of string * message
+  | GroupChatAdd of string * (username list)
 
 exception Empty
 
@@ -98,7 +101,30 @@ let parse input =
       if comm = "emojis" ||
          comm = "Emojis" then Emojis
       else
-      if comm = "gc" then GroupChat ((mess |> List.hd) ,(mess |> List.tl))
+      if comm = "gc" then 
+        try
+          GroupChat ((mess |> List.hd) ,(mess |> List.tl))
+        with 
+        | Failure x -> raise Malformed
+      else
+      if comm = "gcget" then
+        try
+          GroupChatGet (mess |> List.hd)
+        with 
+        | Failure x -> raise Malformed
+      else
+      if comm = "gcsend" then
+        try
+          GroupChatSend ((mess |> List.hd), 
+                         (mess |> List.tl |> string_list_to_string))
+        with
+        | Failure x -> raise Malformed
+      else
+      if comm = "gcadd" then
+        try 
+          GroupChatAdd ((mess |> List.hd), (mess |> List.tl))
+        with
+        | Failure x -> raise Malformed
       else
       if comm = "tictactoe" || comm = "TicTacToe" || comm = "Tictactoe" then (
         try let newgame = (mess |> List.rev |> List.hd) in

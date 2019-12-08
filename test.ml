@@ -23,6 +23,7 @@ convo
   - add_msg: adds message to conversation between two users in firebase
   - get_conversation_history: checks if a list of strings with the newest
   conversations being at the front of the list is returned
+   -get_notifications: check to make sure notifications are updated properly. 
 gc 
   - add_gc_msg: adds message to group chat in firebase
   - get_gc_history: checks if a list of strings with the newest
@@ -90,12 +91,18 @@ let convo_tests =
     "add message">:: (fun _ ->
         assert_equal ()
           (Server.add_msg "test2" "test1" "b") );
+    "check for test1 notification">:: (fun _ ->
+        assert_equal ["test2"]
+          (Server.get_notifications "test1" ));
     "check convo between test2 and test1">:: (fun _ ->
         assert_equal ["test2: b"; "test1: a"]
           (Server.get_conversation_history "test2" "test1") );
     "check convo between test1 and test2 (should be same as previous)">:: (fun _ ->
         assert_equal ["test2: b"; "test1: a"]
           (Server.get_conversation_history "test1" "test2") );
+    "check for test1 notification after get convo">:: (fun _ ->
+        assert_equal []
+          (Server.get_notifications "test1" ));
     "delete convo and test users" >:: (fun _ ->
         assert_equal ()
           (Server.delete_conversation "test1" "test2"); 
@@ -103,14 +110,9 @@ let convo_tests =
         let _ = Server.delete_user "test2" in () );
     (* this is used as a buffer so firebase has time to update  *)
     "firebase buffer time" >:: (fun _ ->
-        let _ = Server.conversation_exists "test1" "test2" in 
-        let _ = Server.conversation_exists "test1" "test2" in 
-        let _ = Server.conversation_exists "test1" "test2" in 
-        let _ = Server.conversation_exists "test1" "test2" in
-        let _ = Server.conversation_exists "test1" "test2" in
-        let _ = Server.conversation_exists "test1" "test2" in
-        let _ = Server.conversation_exists "test1" "test2" in
-        () );
+        for x = 0 to 15 do 
+          let _ = Server.conversation_exists "test1" "test2" in ()
+        done );
     "check if convo exists a bit after deletion" >:: (fun _ ->
         assert_equal false
           (Server.conversation_exists "test1" "test2") );
@@ -183,9 +185,9 @@ let gc_test =
 
 let tests =
   [
-    user_tests;
+    (* user_tests; *) 
     convo_tests;  
-    gc_test; 
+    (* gc_test; *) 
   ]
 
 let suite =

@@ -89,6 +89,12 @@ let game_of_string s =
     win = ref (bool_of_string game_array.(6))
   } in
   game
+(** [valid_gc_member gc n] returns true if [gc] exists and [n] is a member of 
+    the [gc], false otherwise. *)
+let valid_gc_member gc n =
+  ((gc_exists gc) && (List.mem n (get_gc_users gc)))
+
+(* Main Program *)
 
 (** [main] is the main interface for Essenger. It takes parsed commands from 
     the command module and processes them to perform the proper function as 
@@ -96,6 +102,10 @@ let game_of_string s =
 let rec main current_user ()= 
   print_newline();
   ANSITerminal.(print_string [cyan] "\nEssenger\n");
+  if (List.length (get_notifications current_user) != 0) then
+    (ANSITerminal.(print_string [cyan] "\nYou have new messages from: \n");
+     print_list (get_notifications current_user);)
+  else print_string "";
   ANSITerminal.(print_string [white] 
                   "Type @Help or @help to view supported commands.\n");
   print_string "> ";
@@ -105,35 +115,31 @@ let rec main current_user ()=
     | Send (r,m) -> (* Send message to server *) 
       if (Server.user_exists r) then (
         ANSITerminal.(print_string [cyan] 
-                        ("Recipient: " ^ r ^ "\nMessage: " ^ m));
+                        ("Recipient: " ^ r ^ "\nMessage: " ^ m ^ "\n"));
         Server.add_msg current_user r m;
         main current_user ()
       )
       else (
         ANSITerminal.(print_string [red]
-                        ("\nUser \""^r^"\" does not exist."^ 
-                         " Check if the username is correct."));
+                        ("\nUser \""^r^"\" does not exist.\n"));
         main current_user ()
       )
     | Get r ->( (* Get message history *) 
         try
-          ANSITerminal.(print_string [cyan] 
-                          ("Getting message history with: " ^ r ^ "\n"));
           if Server.user_exists r then 
-            (print_list (Server.get_conversation_history current_user r); 
+            (print_list (List.rev 
+                           (Server.get_conversation_history current_user r)); 
              main current_user ())
           else 
             (ANSITerminal.(print_string [red]
-                             ("\nUser " ^ r ^ " does not exist."));
+                             ("\nUser " ^ r ^ " does not exist.\n"));
              main current_user ())
         with
         | Failure x -> 
           ANSITerminal.(print_string [red]
-                          ("\nYou have no message history with " ^ r));
+                          ("\nYou have no message history with " ^ r ^ "\n"));
           main current_user ())
     | Friends -> (* Get List of friends *) 
-      ANSITerminal.(print_string [cyan] 
-                      ("Getting friends list."));
       print_endline "";
       Server.get_friends current_user |> print_list;
       print_endline "-------------------------------";
@@ -142,14 +148,43 @@ let rec main current_user ()=
       main current_user ()
     | Help -> (* Access Help Options *) 
       ANSITerminal.(print_string [cyan]
-                      "\nSupported Commands: \n
+                      "\nSupported Commands:
+
+              ~ Direct Messaging Commands ~");
+      ANSITerminal.(print_string [white] "
               @<username> : Gets your message history with <username>\n
               @<username> <message> : Sends <message> to user <username>\n
               @Friends or @friends : View who you've had conversations with.\n
-              @gc <gc_name> <username list> : Create a GroupChat with users 
-                  specified in <username list>. Every word separated by spaces
-                  after <gc_name> specifies a user to add to the GroupChat.\n
-              @Logout or @logout : Log out of Essenger.\n");
+              @Logout or @logout : Log out of Essenger.\n
+              ");
+      ANSITerminal.(print_string [cyan] "~ GroupChat Commands ~\n");
+      ANSITerminal.(print_string [white] 
+                      "              @gc <gc_name> <username list> : 
+                                Create a GroupChat with users specified in 
+                                <username list>. Every word separated by spaces 
+                                after <gc_name> specifies a user to add to the 
+                                GroupChat.\n
+              @gcget <gc_name> : Get message history of GroupChat <gc_name>.\n
+              @gcsend <gc_name> <message> : Sends <message> to GroupChat 
+                  <gc_name> \n
+              @gcadd <gc_name> <username list> : Adds users in <username list>
+                  to <gc_name>. <gc_name> must exist and you must be a member
+                  of <gc_name>. \n");
+
+      ANSITerminal.(print_string [cyan] 
+                      "                                                       
+              ~ Emojis and Stickers ~");
+      ANSITerminal.(print_string [white] 
+                      "
+              @Emojis or @emojis : View available emojis.\n
+              @Stickers or @stickers : View available stickers.\n");
+      ANSITerminal.(print_string [cyan] "\nEmojis and Stickers:\n");
+      ANSITerminal.(print_string [white] "
+              Send emojis and stickers in your messages by typing 
+              #<emoji or sticker name> in your message as a word.\n
+              Type @emojis or @stickers to view available stickers and emojis.
+              \n");
+
       main current_user ()
     | Logout -> (* Logout From Account *) 
       ANSITerminal.(print_string [cyan] 
@@ -158,18 +193,17 @@ let rec main current_user ()=
     | Sticker -> 
       ANSITerminal.(print_string [cyan] "\nAvailable stickers:\n");
       print_stickers stickers;
-      ANSITerminal.(print_string [cyan] "\nTo send a sticker, enter: \n
-      @username #[sticker number].");
+      ANSITerminal.(print_string [cyan] ("\nTo send a sticker, enter: "^
+                                         "\n@username #[sticker number].\n"));
       main current_user ()
     | Emojis ->
       ANSITerminal.(print_string [cyan] "\nAvailable emojis: \n");
       print_emojis emojis;
       ANSITerminal.(print_string 
                       [cyan] 
-                      "\nTo use an emoji, enter: \n @username #[emoji name].");
+                      "\nTo use an emoji, enter: \n@username #[emoji name].\n");
       main current_user ()
     | GroupChat (n, ht) -> 
-      ANSITerminal.(print_string [cyan] ("\nCreating GroupChat "^n^".\n"));
       if Server.gc_exists n then
         (ANSITerminal.(print_string [red] ("\nGroupChat exists. Please choose "^
                                            "another name. \n"));
@@ -180,6 +214,7 @@ let rec main current_user ()=
           ANSITerminal.(print_string [green] ("\nGroupChat "^n^" created.\n"));
           main current_user ()
         )
+        <<<<<<< HEAD
     | Tictactoe (user, newgame) -> (
         if (newgame = "new") then (
           ANSITerminal.(print_string [cyan] ("Starting Tic Tac Toe with " ^ user));
@@ -203,9 +238,62 @@ let rec main current_user ()=
         )
       )
 
+        =======
+    | GroupChatGet n -> 
+      if valid_gc_member n current_user then
+        ( 
+          ANSITerminal.(print_string [cyan] "\nMembers: \n");
+          print_list (get_gc_users n);
+          ANSITerminal.(print_string [cyan] "Messages: \n");
+          print_list (get_gc_history n |> List.rev);
+          main current_user ())
+      else 
+      if (not (gc_exists n)) then
+        (ANSITerminal.(print_string [red] 
+                         ("\nThis GroupChat does not exist.\n"));
+         main current_user ())
+      else
+        (ANSITerminal.(print_string [red] 
+                         ("\nYou are not a member of this GroupChat.\n"));
+         main current_user ())
+    | GroupChatSend (n,m) -> 
+      if valid_gc_member n current_user then
+        (add_gc_msg n current_user m;
+         ANSITerminal.(print_string [cyan] 
+                         ("GroupChat: " ^ n ^ "\nMessage: " ^ m ^"\n"));
+         main current_user ())
+      else 
+      if (not (gc_exists n)) then 
+        (ANSITerminal.(print_string [red] 
+                         ("\nThis GroupChat does not exist.\n"));
+         main current_user ())
+      else
+        (ANSITerminal.(print_string [red] 
+                         ("\nYou are not a member of this GroupChat.\n"));
+         main current_user ()
+        )
+    | GroupChatAdd (n,ht) ->
+      if valid_gc_member n current_user then
+        (add_users_to_gc n ht;
+         ANSITerminal.(print_string [green] 
+                         ("Members Added: "));
+         print_list ht;
+         main current_user ())
+      else
+      if (not (gc_exists n)) then 
+        (ANSITerminal.(print_string [red] 
+                         ("\nThis GroupChat does not exist.\n"));
+         main current_user ())
+      else
+        (ANSITerminal.(print_string [red] 
+                         ("\nYou are not a member of this GroupChat.\n"));
+         main current_user ()
+        )
+        >>>>>>> 312e78ee5c22f825bf99e38954cf97bdb481c9ba
   with
-  | Malformed -> print_string 
-                   "Please try again. Hint: Did you start with '@'?\n";
+  | Malformed -> print_string (
+      "Invalid input. Please try again. " ^ 
+      "\nType @help or @Help to see command structures. \n");
     main current_user ()
   | Empty -> print_string "Nothing was inputted, please try again.\n";
     main current_user ()
@@ -219,15 +307,14 @@ let rec main current_user ()=
 let rec login () = 
   print_endline ({|
 
- /$$$$$$$$  /$$$$$$  /$$$$$$  /$$$$$$$$ /$$   /$$  /$$$$$$  /$$$$$$$$ /$$$$$$$ 
-| $$_____/ /$$__  $$/$$__  $$| $$_____/| $$$ | $$ /$$__  $$| $$_____/| $$__  $$
-| $$      | $$  \__/ $$  \__/| $$      | $$$$| $$| $$  \__/| $$      | $$  \ $$
-| $$$$$   |  $$$$$$|  $$$$$$ | $$$$$   | $$ $$ $$| $$ /$$$$| $$$$$   | $$$$$$$/
-| $$__/    \____  $$\____  $$| $$__/   | $$  $$$$| $$|_  $$| $$__/   | $$__  $$
-| $$       /$$   \ $$/$$  \  $$| $$      | $$\   $$$| $$  \  $$| $$      | $$ "^
-                 " \\ $$
-| $$$$$$$$|  $$$$$$/  $$$$$$/| $$$$$$$$| $$ \   $$| $$$$$$/ | $$$$$$$$| $$  | $$
-|________/ \______/ \______/ |________/|__/  \__/ \______/ |________/|__/  |__/
+ /$$$$$$$$  /$$$$$$   /$$$$$$  /$$$$$$$$ /$$   /$$  /$$$$$$  /$$$$$$$$ /$$$$$$$ 
+| $$_____/ /$$__  $$ /$$__  $$| $$_____/| $$$ | $$ /$$__  $$| $$_____/| $$__  $$
+| $$      | $$  \__/| $$  \__/| $$      | $$$$| $$| $$  \__/| $$      | $$  \ $$
+| $$$$$   |  $$$$$$ |  $$$$$$ | $$$$$   | $$ $$ $$| $$ /$$$$| $$$$$   | $$$$$$$/
+| $$__/    \____  $$ \____  $$| $$__/   | $$  $$$$| $$|_  $$| $$__/   | $$__  $$
+| $$       /$$  \ $$ /$$  \ $$| $$      | $$\  $$$| $$  \ $$| $$      | $$  \ $$
+| $$$$$$$$|  $$$$$$/|  $$$$$$/| $$$$$$$$| $$ \  $$|  $$$$$$/| $$$$$$$$| $$  | $$
+|________/ \______/  \______/ |________/|__/  \__/ \______/ |________/|__/  |__/
 
                                                                         |} );
   ANSITerminal.(print_string [cyan] 
