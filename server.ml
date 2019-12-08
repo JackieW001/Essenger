@@ -277,19 +277,34 @@ let delete_user user1 =
     [user2], to [user2]'s list of notifications *)
 let update_notification_from_user user1 user2 = 
   let data = Cohttp_lwt.Body.of_string ("{\"blep\": \"\"}") in 
-  let body = Client.put ~body:data 
+  let _ = Client.put ~body:data 
       (Uri.of_string (firebase^"/Users/"^user2^"/notifications/users/@"
                       ^user1^".json"))
-             |> return_body |> Lwt_main.run in
+          |> return_body |> Lwt_main.run in
   ()
+
+(** [delete_notification_from_user] deletes notification from [user1] in
+    [user2]'s notifications *)
+let delete_notification_from_user user1 user2 =
+  let _ = Client.delete 
+      (Uri.of_string (firebase^"/Users/"^user2^"/notifications/users/@"^user1^
+                      ".json")) in
+  () 
+
+(** [parse_for_users] cleans string [s] to only have usernames *)
+let parse_for_users s = 
+  let splitter = Str.regexp("@") in 
+  (Str.split splitter s) |> List.tl |> List.map (fun x -> 
+      let length = String.index x '\"' in 
+      String.sub x 0 length
+    )
 
 let get_notifications user = 
   let not = Client.get
       (Uri.of_string (firebase^"/Users/"^user^"/notifications/users/.json"))
             |> return_body |> Lwt_main.run in 
   if (substring_contains not "null") then [] else 
-    (print_endline not; 
-     [])
+    parse_for_users not
 
 (******** MESSAGE FUNCTIONS ***********)
 
@@ -346,8 +361,6 @@ let get_msg user1 user2 i =
   if (substring_contains data "null") then failwith "Message not found" else 
     data
 
-(** [get_conversation_history] returns the conversation history between 
-    [user1] and [user2] *)
 let get_conversation_history user1 user2 = 
   let users = sort_users user1 user2 in
   let request = 
@@ -357,10 +370,10 @@ let get_conversation_history user1 user2 =
     |> return_body |> Lwt_main.run in 
   if (substring_contains request "null") then failwith "No message history" else
     let conv_info = histjson_to_record request in 
+    delete_notification_from_user user1 user2; 
     conv_to_str_list conv_info
 
-(** [get_conversation] returns the conversation between 
-    [user1] and [user2] *)
+
 let get_conversation user1 user2 = 
   let users = sort_users user1 user2 in
   Client.get 
@@ -489,12 +502,20 @@ let delete_gc gc_name =
   let _ = Client.delete 
       (Uri.of_string (firebase^"/GroupChats/"^gc_name^".json")) in ()
 
+
+
 (* Below is used for testing *)
 
 let ()= (); 
-  update_notification_from_user "test1" "test2"; 
-  update_notification_from_user "test3" "test2"; 
-  print_list (get_notifications "test2"); 
+  (* add_msg "test1" "test2" "hi"; 
+     add_msg "test1" "test2" "bye"; 
+     print_list (get_notifications "test2");
+     print_list (get_conversation_history "test1" "test2");*)
+  (* print_list (get_notifications "test2"); *) 
+  (* update_notification_from_user "test1" "test2"; 
+     update_notification_from_user "test3" "test2"; *) 
+  (* delete_notification_from_user "test1" "test2"; 
+     print_list (get_notifications "test2"); *) 
   (* create_gc "special_surprise" ["jackie";"william"];
      add_gc_msg "special_surprise" "jackie" "bye bye";
      add_gc_msg "special_surprise" "william" "hi"; 

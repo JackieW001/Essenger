@@ -48,7 +48,7 @@ val get_notifications : string -> string list
     [s] and [r] if the conversation does not exist. *)
 val add_msg : sender -> recipient -> message -> unit
 
-(** [get_conversation_history s r i] returns a string list of conversations
+(** [get_conversation_history s r] returns a string list of conversations
     between s and r from oldest to newest *)
 val get_conversation_history : sender -> recipient -> string list 
 
