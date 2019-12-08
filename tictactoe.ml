@@ -54,6 +54,7 @@ let rec move game =
     else (ANSITerminal.(print_string [cyan] "Oops! You entered an invalid number.
   Please try again.");
           move game)
+
 and valid_move square st game =
   match st with
   | 0 -> (
@@ -69,7 +70,6 @@ and valid_move square st game =
       check_winner "u1" !(game.u1_moves) game
     )
   | _ -> failwith "INVALID STATE"
-
 and update_board board game = 
   for i=0 to 8 do
     if List.mem (i+1) !(game.u0_moves) then board.(i) <- "O"
