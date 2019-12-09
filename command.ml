@@ -2,6 +2,8 @@ type message = string
 
 type username = string
 
+type groupname = string
+
 type command = 
   | Get of username 
   | Send of username * message
@@ -10,27 +12,27 @@ type command =
   | Logout
   | Sticker
   | Emojis
-  | GroupChat of string * (username list)
+  | GroupChat of groupname * (username list)
   | Tictactoe of username * string
-  | GroupChatGet of string
-  | GroupChatSend of string * message
-  | GroupChatAdd of string * (username list)
+  | GroupChatGet of groupname
+  | GroupChatSend of groupname * message
+  | GroupChatAdd of groupname * (username list)
 
 exception Empty
 
 exception Malformed
 
-(*
-exception UnknownUser
-*)
+(** The tuple list [stickers] represents available stickers in Essenger. *)
 let stickers = [
   (1, {|(O-O)|}); 
   (2, {|(\^o^/)|});
   (3, {|( .o.)|});
   (4, {|( .-. )|});
-  (5, {|( -.- )|})
+  (5, {|( -.- )|});
+  (6, {|( ͡° ͜ʖ ͡°)|})
 ]
 
+(** The tuple list [emojis] represents available unicode emojis in Essenger. *)
 let emojis = [
   ("happy", "\u{1F600}");
   ("sad", "\u{1F614}");
