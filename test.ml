@@ -58,6 +58,11 @@ let user_tests =
     "create test user">:: (fun _ ->
         assert_equal ()
           (Server.create_user "test" "test") );
+    (* this is used as a buffer so firebase has time to update  *)
+    "firebase buffer time" >:: (fun _ ->
+        for x = 0 to 5 do 
+          let _ = Server.conversation_exists "test1" "test2" in ()
+        done );
     "check if test user exists after creation">:: (fun _ ->
         assert_equal true 
           (Server.user_exists "test") );
@@ -67,9 +72,19 @@ let user_tests =
     "delete test user">:: (fun _ ->
         assert_equal ()
           (Server.delete_user "test" ) ); 
+    (* this is used as a buffer so firebase has time to update  *)
+    "firebase buffer time" >:: (fun _ ->
+        for x = 0 to 5 do 
+          let _ = Server.conversation_exists "test1" "test2" in ()
+        done );
     "try to auth test user">:: (fun _ ->
         assert_equal false
           (Server.auth "test" "test") );
+    (* this is used as a buffer so firebase has time to update  *)
+    "firebase buffer time" >:: (fun _ ->
+        for x = 0 to 5 do 
+          let _ = Server.conversation_exists "test1" "test2" in ()
+        done );
     "check if test user exists after deletion">:: (fun _ ->
         assert_equal false 
           (Server.user_exists "test") );
