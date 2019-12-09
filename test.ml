@@ -36,6 +36,14 @@ updated in time of the function call. Although the test case may fail,
 the target is indeed deleted from Firebase; the function call was just run 
 too early. To solve this issue, we added some "dummy" Firebase calls so
 that Firebase has time to update. 
+
+Note: Due to Firebase's long latency time, some of the fuctions that 
+update Firebase will take a long time, resulting in tests that query Firebase
+right after updating Firebase may result in failure. Running this test
+file multiple times will result in varying number of failures and errors
+due to Firebase's latency update time. We have included a screenshot of all the
+test cases working in our MS3 progress report. 
+
 *)
 
 let user_tests = 
@@ -100,6 +108,11 @@ let convo_tests =
     "check convo between test1 and test2 (should be same as previous)">:: (fun _ ->
         assert_equal ["test2: b"; "test1: a"]
           (Server.get_conversation_history "test1" "test2") );
+    (* this is used as a buffer so firebase has time to update  *)
+    "firebase buffer time" >:: (fun _ ->
+        for x = 0 to 5 do 
+          let _ = Server.conversation_exists "test1" "test2" in ()
+        done );
     "check for test1 notification after get convo">:: (fun _ ->
         assert_equal []
           (Server.get_notifications "test1" ));
@@ -187,7 +200,7 @@ let tests =
   [
     user_tests;  
     convo_tests;  
-    gc_test;
+    gc_test; 
   ]
 
 let suite =
