@@ -4,6 +4,7 @@ open Sha256
 
 (* Helper Functions *)
 
+(** The list of available stickers. *)
 let stickers = [
   (1, {|(O-O)|}); 
   (2, {|(\^o^/)|});
@@ -12,6 +13,7 @@ let stickers = [
   (5, {|( -.- )|})
 ]
 
+(** The list of available emojis. *)
 let emojis = [
   ("happy", "\u{1F600}");
   ("sad", "\u{1F614}");
@@ -230,7 +232,7 @@ let rec main current_user ()=
           main current_user ()
         ) else (
           ANSITerminal.(print_string [cyan] ("Continuing Tic Tac Toe with " ^ user));
-          let game_string = "" in
+          let game_string = "" in (* THIS IS WHERE THE MESSAGE STRING SHOULD GO *)
           let game = Tictactoe.move (game_of_string game_string) in
           if (Server.user_exists user) then (
             ANSITerminal.(print_string [cyan] 
@@ -240,7 +242,6 @@ let rec main current_user ()=
           main current_user ()
         )
       )
-
     | GroupChatGet n -> 
       if valid_gc_member n current_user then
         ( 

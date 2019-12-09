@@ -8,10 +8,12 @@ type game = {
   win: bool ref
 }
 
+(** [string_of_list str] returns a string representation of a list. *)
 let rec string_of_list str = function
   | [] -> str
   | h::t -> string_of_list (str ^ ";" ^ (string_of_int h)) t
 
+(** [string_of_array board] returns an array representation of a game board. *)
 let string_of_array board = 
   let str = ref "" in
   for i=0 to (board |> Array.length) - 1 do
@@ -30,9 +32,14 @@ let string_of_game game =
 
 let win winner game = 
   if winner <> "" then (
-    ANSITerminal.(print_string [green] ("\n" ^ winner ^ " wins!!!\n"));
-    ANSITerminal.(print_string [white] "\n ----- GAME OVER ----- \n");
-    game.win := true; game)
+    if winner="tie" then (
+      ANSITerminal.(print_string [green] ("\n You tied ): \n"));
+      ANSITerminal.(print_string [white] "\n ----- GAME OVER ----- \n");
+      game.win:=true; game)
+    else (
+      ANSITerminal.(print_string [green] ("\n" ^ winner ^ " wins!!!\n"));
+      ANSITerminal.(print_string [white] "\n ----- GAME OVER ----- \n");
+      game.win := true; game))
   else game
 
 let rec move game = 
@@ -41,8 +48,8 @@ let rec move game =
   let input = read_line () in
   match int_of_string_opt input with
   | None -> (
-      ANSITerminal.(print_string [cyan] "Oops! You entered something other than a
-    digit between 1 and 9. Please try again.");
+      ANSITerminal.(print_string [cyan] "Oops! You entered something other than 
+      a digit between 1 and 9. Please try again.");
       move game
     )
   | Some i -> if (i >= 1 && i <= 9) then (
@@ -51,8 +58,8 @@ let rec move game =
       else (ANSITerminal.(print_string [cyan] "That square has already been
       taken. Please try again. \n");
             move game))
-    else (ANSITerminal.(print_string [cyan] "Oops! You entered an invalid number.
-  Please try again.");
+    else (ANSITerminal.(print_string [cyan] "Oops! You entered an invalid 
+    number. Please try again.");
           move game)
 
 and valid_move square st game =
@@ -61,13 +68,13 @@ and valid_move square st game =
       game.u0_moves := square::!(game.u0_moves);
       game.state := 1;
       update_board !(game.board) game;
-      check_winner "u0" !(game.u0_moves) game
+      check_winner game.u0 !(game.u0_moves) game
     )
   | 1 -> (
       game.u1_moves := square::!(game.u1_moves);
       game.state := 0;
       update_board !(game.board) game;
-      check_winner "u1" !(game.u1_moves) game
+      check_winner game.u1 !(game.u1_moves) game
     )
   | _ -> failwith "INVALID STATE"
 and update_board board game = 
@@ -124,8 +131,8 @@ let intro u0 u1 =
   ------------------ \n");
   ANSITerminal.(print_string [cyan] "\n How to Play: \n");
   ANSITerminal.(print_string [cyan] "The game board is displayed below. The
-  squares are numbered 1-9. When prompted, enter the number of the square in which
-  you would like to place your marker.");
+  squares are numbered 1-9. When prompted, enter the number of the square 
+  in which you would like to place your marker.");
   let game = {
     u0 = u0;
     u1 = u1;

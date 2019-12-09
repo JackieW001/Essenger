@@ -1,7 +1,11 @@
 (** This is a messenger-based version of the game Tic Tac Toe. A user can
-    play by typing @tictactoe [user] [new?]. [user] should be the name of
-    an existing user. [new?] is optional; if it is included then a new game
-    will be started between the two players. *)
+    play by entering the command tictactoe, then 2 more fields:
+    [user] should be the name of an existing user. 
+    [new?] is optional; if "new" is included then a new game will be started 
+    between the two players, otherwise the last game between the players
+    will be continued (if it exists). If the "new" keyword is left out, but 
+    there is no previous game history between the two players, a new game will
+    be started.*)
 
 (** The type for a Tic Tac Toe game.*)
 type game = {
@@ -15,7 +19,7 @@ type game = {
 }
 
 (** [win winner game] prints the winner message if there is one and returns the
-    game. *)
+    game regardless of whether someone has won. *)
 val win: string -> game -> game 
 
 (** [move game] reads user input for which game square they want to take. *)
