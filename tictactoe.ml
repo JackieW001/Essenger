@@ -33,12 +33,18 @@ let string_of_game game =
 let win winner game = 
   if winner <> "" then (
     if winner="tie" then (
-      ANSITerminal.(print_string [green] ("\n You tied ): \n"));
+      ANSITerminal.(print_string [green] ("\n You tied :( ) \n"));
       ANSITerminal.(print_string [white] "\n ----- GAME OVER ----- \n");
+      ANSITerminal.(print_string [white] ("To start a new game with this user, 
+      type @tictactoe " ^ (if (List.length !(game.u0_moves) = 5) 
+                           then game.u1 else game.u0) ^ " new \n" ));
       game.win:=true; game)
     else (
       ANSITerminal.(print_string [green] ("\n" ^ winner ^ " wins!!!\n"));
       ANSITerminal.(print_string [white] "\n ----- GAME OVER ----- \n");
+      ANSITerminal.(print_string [white] ("To start a new game with this user, 
+      type @tictactoe " ^ (if winner = game.u0 then game.u1 else game.u0) 
+                                          ^ " new \n" ));
       game.win := true; game))
   else game
 
@@ -124,6 +130,7 @@ and check_winner user moves game =
   else
   if (List.mem 3 moves) && (List.mem 5 moves) && (List.mem 7 moves)
   then win user game
+  else if (List.length moves = 5) then win "tie" game 
   else win "" game
 
 let intro u0 u1 =

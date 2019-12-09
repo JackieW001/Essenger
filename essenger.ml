@@ -221,18 +221,22 @@ let rec main current_user ()=
           main current_user ()
         )
     | Tictactoe (user, newgame) -> (
-        if (newgame = "new") then (
-          ANSITerminal.(print_string [cyan] ("Starting Tic Tac Toe with " ^ user));
+        let game_string = "" in (* THIS IS WHERE THE MESSAGE STRING SHOULD GO *)
+        let game_check = game_of_string game_string in
+        if (newgame = "new") || !(game_check.win)  then (
+          ANSITerminal.(print_string [cyan] 
+                          ("Starting Tic Tac Toe with " ^ user));
           let game = Tictactoe.intro current_user user in
           if (Server.user_exists user) then (
             ANSITerminal.(print_string [cyan] 
                             ("Recipient: " ^ user ^ "\nBoard: "));
             (!(game.board) |> Tictactoe.print_board));
+          (* Attempted to send message *)
           Server.add_msg current_user user (game |> Tictactoe.string_of_game);
           main current_user ()
         ) else (
-          ANSITerminal.(print_string [cyan] ("Continuing Tic Tac Toe with " ^ user));
-          let game_string = "" in (* THIS IS WHERE THE MESSAGE STRING SHOULD GO *)
+          ANSITerminal.(print_string [cyan] 
+                          ("Continuing Tic Tac Toe with " ^ user));
           let game = Tictactoe.move (game_of_string game_string) in
           if (Server.user_exists user) then (
             ANSITerminal.(print_string [cyan] 
