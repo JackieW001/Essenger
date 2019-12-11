@@ -3,7 +3,7 @@ open Server
 open Tictactoe
 
 (* 
-  These test cases test the interaction between our [server.ml] file
+  The first three test suites test the interaction between our [server.ml] file
   and Firebase. Specifically, we check if mutating users, group chats,
   and conversations are handled properly. 
   Note: gc stands for group chat
@@ -45,6 +45,8 @@ file multiple times will result in varying number of failures and errors
 due to Firebase's latency update time. We have included a screenshot of all the
 test cases working in our MS3 progress report. 
 
+The last test suite validates the accuracy of creating and updating a
+tic tac toe game. 
 *)
 
 let user_tests = 
@@ -94,6 +96,13 @@ let user_tests =
 let convo_tests = 
   "init convo suite" >:::
   [
+    (* this is used as a buffer so firebase has time to update  *)
+    "firebase buffer time" >:: (fun _ ->
+        let _ = Server.conversation_exists "test1" "test2" in 
+        let _ = Server.conversation_exists "test1" "test2" in 
+        let _ = Server.conversation_exists "test1" "test2" in 
+        let _ = Server.conversation_exists "test1" "test2" in
+        () );
     "check if convo exists before creation" >:: (fun _ ->
         assert_equal false
           (Server.conversation_exists "test1" "test2") );
@@ -115,6 +124,11 @@ let convo_tests =
     "add message">:: (fun _ ->
         assert_equal ()
           (Server.add_msg "test2" "test1" "b") );
+    (* this is used as a buffer so firebase has time to update  *)
+    "firebase buffer time" >:: (fun _ ->
+        for x = 0 to 5 do 
+          let _ = Server.conversation_exists "test1" "test2" in ()
+        done );
     "check for test1 notification">:: (fun _ ->
         assert_equal ["test2"]
           (Server.get_notifications "test1" ));
@@ -150,6 +164,13 @@ let convo_tests =
 let gc_test = 
   "init convo suite" >:::
   [
+    (* this is used as a buffer so firebase has time to update  *)
+    "firebase buffer time" >:: (fun _ ->
+        let _ = Server.gc_exists "test_gc" in 
+        let _ = Server.gc_exists "test_gc" in 
+        let _ = Server.gc_exists "test_gc" in 
+        let _ = Server.gc_exists "test_gc" in
+        () );
     "check if gc exists before creation" >:: (fun _ ->
         assert_equal false
           (Server.gc_exists "test_gc") );
@@ -252,11 +273,15 @@ let game_tests =
 
 let tests =
   [
+    user_tests; 
+    convo_tests;
+    gc_test;
+    game_tests; 
+    (* 
     user_tests;  
     convo_tests;  
-    gc_test;
-    game_tests;
-    gc_test; 
+
+    *) 
   ]
 
 let suite =
