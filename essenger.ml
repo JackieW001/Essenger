@@ -225,8 +225,16 @@ let rec main current_user ()=
           main current_user ()
         )
     | Tictactoe (user, newgame) -> (
-        let game_prev = Server.get_game current_user user in
-        match game_prev with
+        let game_prev : Tictactoe.game = {
+          u0 = "u0";
+          u1 = "u1";
+          state = ref 0;
+          board = ref [|"-1";"-1";"-1";"-1";"-1";"-1";"-1";"-1";"-1";|];
+          u0_moves = ref [];
+          u1_moves = ref [];
+          win = ref false;
+        } in 
+        match Some game_prev with
         | None -> (
             ANSITerminal.(print_string [cyan] 
                             ("Starting Tic Tac Toe with " ^ user));
