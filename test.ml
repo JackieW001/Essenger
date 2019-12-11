@@ -244,7 +244,7 @@ let new_ttt_game =
    win = ref false;}
 
 (** Test suite for basic functionality of Tic Tac Toe game.
-    **IMPORTANT NOTE**: these tests must be run individually otherwise they
+    IMPORTANT NOTE: these tests must be run individually otherwise they
     will interfere with each other*)
 let game_tests = 
   "tic tac toe test suite ">:::
@@ -332,10 +332,9 @@ let tests =
   [
     (* NOTE: the next three sub test suites are more reliable when run 
        individually. *)
-    user_tests; 
-    convo_tests;
-    gc_test;
-
+    (* user_tests; 
+       convo_tests;
+       gc_test; *)
     game_tests; 
   ]
 

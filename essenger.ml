@@ -137,7 +137,7 @@ let rec main current_user ()=
         try
           if Server.user_exists r then 
             (ANSITerminal.(print_string [cyan] "\nMessages: \n");
-              print_list (List.rev 
+             print_list (List.rev 
                            (Server.get_conversation_history current_user r)); 
              main current_user ())
           else 
@@ -225,35 +225,49 @@ let rec main current_user ()=
           main current_user ()
         )
     | Tictactoe (user, newgame) -> (
-        let game_string = "" in (* THIS IS WHERE THE MESSAGE STRING SHOULD GO *)
-        let game_check = Tictactoe.game_of_string game_string in
-        if (newgame = "new") || !(game_check.win)  then (
-          ANSITerminal.(print_string [cyan] 
-                          ("Starting Tic Tac Toe with " ^ user));
-          let game = Tictactoe.intro current_user user in
-          if (Server.user_exists user) then (
+        let game_prev = Server.get_game current_user user in
+        match game_prev with
+        | None -> (
             ANSITerminal.(print_string [cyan] 
-                            ("Recipient: " ^ user ^ "\nBoard: "));
-            (!(game.board) |> Tictactoe.print_board));
-          (* Attempted to send message *)
-          Server.add_msg current_user user (game |> Tictactoe.string_of_game);
-          main current_user ()
-        ) else (
-          match get_game current_user user with 
-          |Some n -> 
-          (ANSITerminal.(print_string [cyan] 
-                          ("Continuing Tic Tac Toe with " ^ user));
-          let game = Tictactoe.move (Tictactoe.game_of_string game_string) in
-          if (Server.user_exists user) then (
-            ANSITerminal.(print_string [cyan] 
-                            ("Recipient: " ^ user ^ "\nBoard: "));
-            (!(game.board) |> Tictactoe.print_board));
-          Server.add_msg current_user user (game |> Tictactoe.string_of_game);
-          main current_user ())
-          |None -> 
-          (ANSITerminal.(print_string [cyan] ("Game doesn't exist.\n"));
-          main current_user ())
-        )
+                            ("Starting Tic Tac Toe with " ^ user));
+            let game = Tictactoe.intro current_user user in
+            if (Server.user_exists user) then (
+              ANSITerminal.(print_string [cyan] 
+                              ("Recipient: " ^ user ^ "\nBoard: "));
+              (!(game.board) |> Tictactoe.print_board));
+            Server.add_msg current_user user (game |> Tictactoe.string_of_game);
+            main current_user ()
+          )
+        | Some g -> (
+            if (newgame = "new") || !(g.win)  then (
+              ANSITerminal.(print_string [cyan] 
+                              ("Starting Tic Tac Toe with " ^ user));
+              let game = Tictactoe.intro current_user user in
+              if (Server.user_exists user) then (
+                ANSITerminal.(print_string [cyan] 
+                                ("Recipient: " ^ user ^ "\nBoard: "));
+                (!(game.board) |> Tictactoe.print_board));
+              Server.add_msg current_user user 
+                (game |> Tictactoe.string_of_game);
+              main current_user ()
+            ) else (
+              match get_game current_user user with 
+              |Some n -> 
+                (ANSITerminal.(print_string [cyan] 
+                                 ("Continuing Tic Tac Toe with " ^ user));
+                 let game = Tictactoe.move n in
+                 if (Server.user_exists user) then (
+                   ANSITerminal.(print_string [cyan] 
+                                   ("Recipient: " ^ user ^ "\nBoard: "));
+                   (!(game.board) |> Tictactoe.print_board));
+                 Server.add_msg current_user user 
+                   (game |> Tictactoe.string_of_game);
+                 main current_user ())
+              |None -> 
+                (ANSITerminal.(print_string [cyan] ("Game doesn't exist.\n"));
+                 main current_user ())
+            )
+          )
       )
     | GroupChatGet n -> 
       if valid_gc_member n current_user then
