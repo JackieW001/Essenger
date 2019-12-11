@@ -8,10 +8,12 @@ type game = {
   win: bool ref
 }
 
+(** [string_of_list str] returns a string representation of a list. *)
 let rec string_of_list str = function
   | [] -> str
   | h::t -> string_of_list (str ^ ";" ^ (string_of_int h)) t
 
+(** [string_of_array board] returns an array representation of a game board. *)
 let string_of_array board = 
   let str = ref "" in
   for i=0 to (board |> Array.length) - 1 do
@@ -30,9 +32,20 @@ let string_of_game game =
 
 let win winner game = 
   if winner <> "" then (
-    ANSITerminal.(print_string [green] ("\n" ^ winner ^ " wins!!!\n"));
-    ANSITerminal.(print_string [white] "\n ----- GAME OVER ----- \n");
-    game.win := true; game)
+    if winner="tie" then (
+      ANSITerminal.(print_string [green] ("\n You tied :( ) \n"));
+      ANSITerminal.(print_string [white] "\n ----- GAME OVER ----- \n");
+      ANSITerminal.(print_string [white] ("To start a new game with this user, 
+      type @tictactoe " ^ (if (List.length !(game.u0_moves) = 5) 
+                           then game.u1 else game.u0) ^ " new \n" ));
+      game.win:=true; game)
+    else (
+      ANSITerminal.(print_string [green] ("\n" ^ winner ^ " wins!!!\n"));
+      ANSITerminal.(print_string [white] "\n ----- GAME OVER ----- \n");
+      ANSITerminal.(print_string [white] ("To start a new game with this user, 
+      type @tictactoe " ^ (if winner = game.u0 then game.u1 else game.u0) 
+                                          ^ " new \n" ));
+      game.win := true; game))
   else game
 
 let rec move game = 
@@ -41,8 +54,8 @@ let rec move game =
   let input = read_line () in
   match int_of_string_opt input with
   | None -> (
-      ANSITerminal.(print_string [cyan] "Oops! You entered something other than a
-    digit between 1 and 9. Please try again.");
+      ANSITerminal.(print_string [cyan] "Oops! You entered something other than 
+      a digit between 1 and 9. Please try again.");
       move game
     )
   | Some i -> if (i >= 1 && i <= 9) then (
@@ -51,8 +64,8 @@ let rec move game =
       else (ANSITerminal.(print_string [cyan] "That square has already been
       taken. Please try again. \n");
             move game))
-    else (ANSITerminal.(print_string [cyan] "Oops! You entered an invalid number.
-  Please try again.");
+    else (ANSITerminal.(print_string [cyan] "Oops! You entered an invalid 
+    number. Please try again.");
           move game)
 
 and valid_move square st game =
@@ -61,13 +74,13 @@ and valid_move square st game =
       game.u0_moves := square::!(game.u0_moves);
       game.state := 1;
       update_board !(game.board) game;
-      check_winner "u0" !(game.u0_moves) game
+      check_winner game.u0 !(game.u0_moves) game
     )
   | 1 -> (
       game.u1_moves := square::!(game.u1_moves);
       game.state := 0;
       update_board !(game.board) game;
-      check_winner "u1" !(game.u1_moves) game
+      check_winner game.u1 !(game.u1_moves) game
     )
   | _ -> failwith "INVALID STATE"
 and update_board board game = 
@@ -117,6 +130,7 @@ and check_winner user moves game =
   else
   if (List.mem 3 moves) && (List.mem 5 moves) && (List.mem 7 moves)
   then win user game
+  else if (List.length moves = 5) then win "tie" game 
   else win "" game
 
 let intro u0 u1 =
@@ -124,8 +138,8 @@ let intro u0 u1 =
   ------------------ \n");
   ANSITerminal.(print_string [cyan] "\n How to Play: \n");
   ANSITerminal.(print_string [cyan] "The game board is displayed below. The
-  squares are numbered 1-9. When prompted, enter the number of the square in which
-  you would like to place your marker.");
+  squares are numbered 1-9. When prompted, enter the number of the square 
+  in which you would like to place your marker.");
   let game = {
     u0 = u0;
     u1 = u1;
@@ -138,3 +152,41 @@ let intro u0 u1 =
   update_board !(game.board) game;
   move game
 
+(** [arr_of_board arr i] returns an array representation of a the board string. *)
+let rec arr_of_board arr i = function
+  | [] -> arr
+  | h::t -> arr.(i) <- h; arr_of_board arr (i+1) t
+
+(** [list_of_moves lst] returns a list representation of the user moves string. *)
+let rec list_of_moves lst = function
+  | [] -> lst
+  | h::t -> list_of_moves ((int_of_string h)::lst) t
+
+(** [parse_game_string arr i] returns an array representation of the game. *)
+let rec parse_game_string arr i = function
+  | [] -> arr
+  | h::t -> (
+      let index = Str.search_forward (Str.regexp {|\\((:\w*\n))\\|}) h 0 in 
+      let matched = String.sub h (index+1) (String.length h - (index+1)) in 
+      let value = Str.matched_string matched in
+      arr.(i) <- value;
+      parse_game_string arr (i+1) t
+    )
+
+(** [game_of_string s] returns a game of type [Tictactoe.game].*)
+let game_of_string s = 
+  let split_game = Str.split (Str.regexp "\\[ \n]\\") s in
+  let game_array = parse_game_string [|""; ""; ""; "";""; ""; ""|] 0 split_game in
+  let game : game = {
+    u0 = game_array.(0);
+    u1 = game_array.(1);
+    state = ref (int_of_string game_array.(2));
+    board = ref (Str.split (Str.regexp "\\[;]\\") game_array.(3) 
+                 |> arr_of_board [|""; ""; ""; "";""; ""; ""; ""; ""|] 0);
+    u0_moves = ref ((Str.split (Str.regexp "\\[;]\\") game_array.(4))
+                    |> list_of_moves []);
+    u1_moves = ref ((Str.split (Str.regexp "\\[;]\\") game_array.(5))
+                    |> list_of_moves []);
+    win = ref (bool_of_string game_array.(6))
+  } in
+  game

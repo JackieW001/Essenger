@@ -1,5 +1,6 @@
 open OUnit2
 open Server
+open Tictactoe
 
 (* 
   These test cases test the interaction between our [server.ml] file
@@ -58,6 +59,11 @@ let user_tests =
     "create test user">:: (fun _ ->
         assert_equal ()
           (Server.create_user "test" "test") );
+    (* this is used as a buffer so firebase has time to update  *)
+    "firebase buffer time" >:: (fun _ ->
+        for x = 0 to 5 do 
+          let _ = Server.conversation_exists "test1" "test2" in ()
+        done );
     "check if test user exists after creation">:: (fun _ ->
         assert_equal true 
           (Server.user_exists "test") );
@@ -67,9 +73,19 @@ let user_tests =
     "delete test user">:: (fun _ ->
         assert_equal ()
           (Server.delete_user "test" ) ); 
+    (* this is used as a buffer so firebase has time to update  *)
+    "firebase buffer time" >:: (fun _ ->
+        for x = 0 to 5 do 
+          let _ = Server.conversation_exists "test1" "test2" in ()
+        done );
     "try to auth test user">:: (fun _ ->
         assert_equal false
           (Server.auth "test" "test") );
+    (* this is used as a buffer so firebase has time to update  *)
+    "firebase buffer time" >:: (fun _ ->
+        for x = 0 to 5 do 
+          let _ = Server.conversation_exists "test1" "test2" in ()
+        done );
     "check if test user exists after deletion">:: (fun _ ->
         assert_equal false 
           (Server.user_exists "test") );
@@ -196,10 +212,50 @@ let gc_test =
 
   ]
 
+(** An empty game object for use in [game_tests]. *)
+let new_ttt_game = 
+  {u0 = "u0";
+   u1 = "u1";
+   state = ref 0;
+   board = ref [|"-1";"-1";"-1";"-1";"-1";"-1";"-1";"-1";"-1";|];
+   u0_moves = ref [];
+   u1_moves = ref [];
+   win = ref false;}
+
+(** Test suite for basic functionality of Tic Tac Toe game.*)
+let game_tests = 
+  "tic tac toe test suite ">:::
+  [
+    (** These tests requre CLI interaction to run. *)
+    (* "check that game board is updated from default" >:: (fun _ ->
+        let game_init = Tictactoe.intro "u0" "u1" in
+        assert_equal false 
+          (game_init = new_ttt_game
+          )
+       ); *)
+
+    (** End interactive tests *)
+    "check that board updates (u0 select 5)" >:: (fun _ -> 
+        let new_game = new_ttt_game in 
+        let move = valid_move 5 0 new_game in 
+        assert_equal true 
+          (!(move.board).(4) = "O")
+      );
+    "check that X and O alternate" >:: (fun _ ->
+        let new_game = new_ttt_game in 
+        let move = valid_move 5 0 new_game in 
+        assert_equal true (!(move.board).(4) = "O");
+        let move2 = valid_move 1 1 move in
+        assert_equal true (!(move2.board).(0) = "X")
+      )
+  ]
+
 let tests =
   [
     user_tests;  
     convo_tests;  
+    gc_test;
+    game_tests;
     gc_test; 
   ]
 
