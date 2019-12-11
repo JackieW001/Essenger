@@ -57,7 +57,7 @@ let rec print_list = function
   | [] -> print_endline ""
   | h::t -> print_endline h; print_list t 
 
-(* 
+
 (** [arr_of_board arr i] returns an array representation of a the board string. *)
 let rec arr_of_board arr i = function
   | [] -> arr
@@ -76,11 +76,13 @@ let rec parse_game_string arr i = function
       let matched = String.sub h (index+1) (String.length h - (index+1)) in 
       let value = Str.matched_string matched in
       arr.(i) <- value;
+      print_string value;
       parse_game_string arr (i+1) t
     )
 
 (** [game_of_string s] returns a game of type [Tictactoe.game].*)
 let game_of_string s = 
+  print_string "reached game of string";
   let split_game = Str.split (Str.regexp "\\[ \n]\\") s in
   let game_array = parse_game_string [|""; ""; ""; "";""; ""; ""|] 0 split_game in
   let game : Tictactoe.game = {
@@ -96,7 +98,7 @@ let game_of_string s =
     win = ref (bool_of_string game_array.(6))
   } in
   game
-*) 
+
 
 (** [valid_gc_member gc n] returns true if [gc] exists and [n] is a member of 
     the [gc], false otherwise. *)
@@ -225,17 +227,17 @@ let rec main current_user ()=
           main current_user ()
         )
     | Tictactoe (user, newgame) -> (
-        let game_prev : Tictactoe.game = {
-          u0 = "u0";
-          u1 = "u1";
-          state = ref 0;
-          board = ref [|"-1";"-1";"-1";"-1";"-1";"-1";"-1";"-1";"-1";|];
-          u0_moves = ref [];
-          u1_moves = ref [];
-          win = ref false;
-        } in 
-        match Some game_prev with
+        let game_prev : Tictactoe.game option = 
+          Some {u0 = "u0";
+                u1 = "u1";
+                state = ref 0;
+                board = ref [|"-1";"-1";"-1";"-1";"-1";"-1";"-1";"-1";"-1";|];
+                u0_moves = ref [];
+                u1_moves = ref [];
+                win = ref false;} in
+        match game_prev with
         | None -> (
+            print_string "reached";
             ANSITerminal.(print_string [cyan] 
                             ("Starting Tic Tac Toe with " ^ user));
             let game = Tictactoe.intro current_user user in
@@ -259,22 +261,16 @@ let rec main current_user ()=
                 (game |> Tictactoe.string_of_game);
               main current_user ()
             ) else (
-              match get_game current_user user with 
-              |Some n -> 
-                (ANSITerminal.(print_string [cyan] 
-                                 ("Continuing Tic Tac Toe with " ^ user));
-                 let game = Tictactoe.move n in
-                 if (Server.user_exists user) then (
-                   ANSITerminal.(print_string [cyan] 
-                                   ("Recipient: " ^ user ^ "\nBoard: "));
-                   (!(game.board) |> Tictactoe.print_board));
-                 Server.add_msg current_user user 
-                   (game |> Tictactoe.string_of_game);
-                 main current_user ())
-              |None -> 
-                (ANSITerminal.(print_string [cyan] ("Game doesn't exist.\n"));
-                 main current_user ())
-            )
+              ANSITerminal.(print_string [cyan] 
+                              ("Continuing Tic Tac Toe with " ^ user));
+              let game = Tictactoe.move g in
+              if (Server.user_exists user) then (
+                ANSITerminal.(print_string [cyan] 
+                                ("Recipient: " ^ user ^ "\nBoard: "));
+                (!(game.board) |> Tictactoe.print_board));
+              Server.add_msg current_user user 
+                (game |> Tictactoe.string_of_game);
+              main current_user ())
           )
       )
     | GroupChatGet n -> 
