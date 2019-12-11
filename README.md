@@ -1,3 +1,4 @@
+#Essenger
 Thank you for downloading Essenger: The better Messenger (TM)
 
 Essenger requires some dependencies that you may need to install, listed below.
@@ -53,5 +54,8 @@ Essenger. Please ignore the warnings. Have fun chatting!
 If you are looking around in server.ml please ignore the red squigglies. 
 We think the merlin file doesn't recognize the cohttp-lwt-unix package
 yet the program runs perfectly fine.
+
+## First Time Logging In 
+Please only enter usernames and passwords that are all lowercase and don't contain spaces.
 
 
