@@ -239,7 +239,9 @@ let rec main current_user ()=
           Server.add_msg current_user user (game |> Tictactoe.string_of_game);
           main current_user ()
         ) else (
-          ANSITerminal.(print_string [cyan] 
+          match get_game current_user user with 
+          |Some n -> 
+          (ANSITerminal.(print_string [cyan] 
                           ("Continuing Tic Tac Toe with " ^ user));
           let game = Tictactoe.move (Tictactoe.game_of_string game_string) in
           if (Server.user_exists user) then (
@@ -247,7 +249,10 @@ let rec main current_user ()=
                             ("Recipient: " ^ user ^ "\nBoard: "));
             (!(game.board) |> Tictactoe.print_board));
           Server.add_msg current_user user (game |> Tictactoe.string_of_game);
-          main current_user ()
+          main current_user ())
+          |None -> 
+          (ANSITerminal.(print_string [cyan] ("Game doesn't exist.\n"));
+          main current_user ())
         )
       )
     | GroupChatGet n -> 
