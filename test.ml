@@ -3,7 +3,7 @@ open Server
 open Tictactoe
 
 (* 
-  These test cases test the interaction between our [server.ml] file
+  The first three test suites test the interaction between our [server.ml] file
   and Firebase. Specifically, we check if mutating users, group chats,
   and conversations are handled properly. 
   Note: gc stands for group chat
@@ -45,6 +45,8 @@ file multiple times will result in varying number of failures and errors
 due to Firebase's latency update time. We have included a screenshot of all the
 test cases working in our MS3 progress report. 
 
+The last test suite validates the accuracy of creating and updating a
+tic tac toe game. 
 *)
 
 let user_tests = 
@@ -94,6 +96,13 @@ let user_tests =
 let convo_tests = 
   "init convo suite" >:::
   [
+    (* this is used as a buffer so firebase has time to update  *)
+    "firebase buffer time" >:: (fun _ ->
+        let _ = Server.conversation_exists "test1" "test2" in 
+        let _ = Server.conversation_exists "test1" "test2" in 
+        let _ = Server.conversation_exists "test1" "test2" in 
+        let _ = Server.conversation_exists "test1" "test2" in
+        () );
     "check if convo exists before creation" >:: (fun _ ->
         assert_equal false
           (Server.conversation_exists "test1" "test2") );
@@ -115,6 +124,11 @@ let convo_tests =
     "add message">:: (fun _ ->
         assert_equal ()
           (Server.add_msg "test2" "test1" "b") );
+    (* this is used as a buffer so firebase has time to update  *)
+    "firebase buffer time" >:: (fun _ ->
+        for x = 0 to 5 do 
+          let _ = Server.conversation_exists "test1" "test2" in ()
+        done );
     "check for test1 notification">:: (fun _ ->
         assert_equal ["test2"]
           (Server.get_notifications "test1" ));
@@ -150,6 +164,13 @@ let convo_tests =
 let gc_test = 
   "init convo suite" >:::
   [
+    (* this is used as a buffer so firebase has time to update  *)
+    "firebase buffer time" >:: (fun _ ->
+        let _ = Server.gc_exists "test_gc" in 
+        let _ = Server.gc_exists "test_gc" in 
+        let _ = Server.gc_exists "test_gc" in 
+        let _ = Server.gc_exists "test_gc" in
+        () );
     "check if gc exists before creation" >:: (fun _ ->
         assert_equal false
           (Server.gc_exists "test_gc") );
@@ -222,7 +243,9 @@ let new_ttt_game =
    u1_moves = ref [];
    win = ref false;}
 
-(** Test suite for basic functionality of Tic Tac Toe game.*)
+(** Test suite for basic functionality of Tic Tac Toe game.
+    **IMPORTANT NOTE**: these tests must be run individually otherwise they
+    will interfere with each other*)
 let game_tests = 
   "tic tac toe test suite ">:::
   [
@@ -235,28 +258,85 @@ let game_tests =
        ); *)
 
     (** End interactive tests *)
-    "check that board updates (u0 select 5)" >:: (fun _ -> 
+    (* ("check that board updates (u0 takes 5)" >:: (fun _ -> 
+         let new_game = new_ttt_game in 
+         let move = valid_move 5 0 new_game in 
+         assert_equal true 
+           (!(move.board).(4) = "O")
+       )); *)
+    (* "check a sequence of two moves (u0 takes 5, u1 takes 1)" >:: (fun _ ->
         let new_game = new_ttt_game in 
         let move = valid_move 5 0 new_game in 
         assert_equal true 
-          (!(move.board).(4) = "O")
-      );
-    "check that X and O alternate" >:: (fun _ ->
+          (!(move.board).(4) = "O");
+        let move2 = valid_move 1 1 move in
+        assert_equal true (!(move2.board).(0) = "X")
+       ); *)
+    (* "check a sequence of three moves (u0 takes 1, u1 takes 2, u0 takes 3)" >::
+       (fun _-> 
+       let new_game = new_ttt_game in 
+       let move = valid_move 1 0 new_game in 
+       assert_equal true (!(move.board).(0) = "O");
+       let move2 = valid_move 2 1 move in
+       assert_equal true (!(move2.board).(1) = "X");
+       let move3 = valid_move 3 0 move2 in 
+       assert_equal true (!(move3.board).(2) = "O");
+       assert_equal true (!(move3.board).(1) = "X");
+       assert_equal true (!(move3.board).(0) = "O");
+       );
+       "check that X and O alternate" >:: (fun _ ->
         let new_game = new_ttt_game in 
         let move = valid_move 5 0 new_game in 
         assert_equal true (!(move.board).(4) = "O");
         let move2 = valid_move 1 1 move in
         assert_equal true (!(move2.board).(0) = "X")
-      )
+       ); *)
+    "check that the win condition is set to true if u0 wins" >:: 
+    (fun _ -> 
+       let new_game = new_ttt_game in 
+       let move = valid_move 5 0 new_game in 
+       assert_equal true 
+         (!(move.board).(4) = "O");
+       let move2 = valid_move 1 1 move in
+       assert_equal true (!(move2.board).(0) = "X");
+       let move3 = valid_move 3 0 move2 in 
+       assert_equal true (!(move3.board).(2) = "O");
+       let move4 = valid_move 2 1 move3 in
+       assert_equal true (!(move4.board).(1) = "X");
+       let move5 = valid_move 7 0 move4 in
+       assert_equal true (!(move5.board).(6) = "O");
+       assert_equal true (!(move5.win));
+    );
+
+    "check that the win condition is set to true if u1 wins" >:: 
+    (fun _ -> 
+       let new_game = new_ttt_game in 
+       let move = valid_move 1 0 new_game in 
+       assert_equal true 
+         (!(move.board).(0) = "O");
+       let move2 = valid_move 5 1 move in
+       assert_equal true (!(move2.board).(4) = "X");
+       let move3 = valid_move 2 0 move2 in 
+       assert_equal true (!(move3.board).(1) = "O");
+       let move4 = valid_move 3 1 move3 in
+       assert_equal true (!(move4.board).(2) = "X");
+       let move5 = valid_move 4 0 move4 in
+       assert_equal true (!(move5.board).(3) = "O");
+       let move6 = valid_move 7 1 move5 in 
+       assert_equal true (!(move6.board).(6) = "X");
+       assert_equal true (!(move6.win));
+    );
   ]
 
 let tests =
   [
-    user_tests;  
-    convo_tests;  
+    (* NOTE: the next three sub test suites are more reliable when run 
+       individually. *)
+    user_tests; 
+    convo_tests;
     gc_test;
-    game_tests;
-    gc_test; 
+
+    game_tests; 
   ]
 
 let suite =

@@ -1,26 +1,47 @@
 # Essenger
 The better messenger. 
 
-`sudo apt-get install pkg-config`
-`sudo apt-get install libssl-dev`
+Thank you for downloading Essenger: The better Messenger (TM)
 
-`opam install sha`
-`opam install lwt`
-`opam install ssl`
-`opam install lwt_ssl`
-`opam install cohttp`
-`opam install cohttp-lwt-unix`
+Essenger was built using OCaml (version 4.08.1) and requires some dependencies that you may need to install, listed below.
+If your system does not have one or more of the following
+packages, please use `opam install <package>`. Please note that 
+it is important to download the packages in the order they are listed, 
+especially the packages listed after str. 
 
-# Emojis
-To use an emoji in a message, type `#emoji_name` For example, typing `#happy` displays the emoji 😀.
-The full list of available emojis:
+Essenger requires the following OCaml packages: 
+  
+  `yojson`
+  
+  `ANSITerminal`
+  
+  `unix`
+  
+  `sha`
+  
+  `str`
+  
+  `ssl`
+  
+  `lwt_ssl`
+  
+  `cohttp`
+  
+  `cohttp-lwt`
+  
+  `cohttp-lwt-unix` 
+  
 
-Faces:  `😀 happy` | `😟 sad` | `😉 wink` | `🤔 thinking` | `😘 kiss` | `😍 heart_eyes` | `😂 laughing`
+If you are running on WSL and run into an ssl or tls error, run the following
+two commands: 
+  
+  `sudo apt-get install pkg-config`
+  
+  `sudo apt-get install libssl-dev`
 
-Symbols: `💯 hundred` | `💥 bang` | `💓 heart` | `💤 sleep` | `💀 skull` 
+If you are on MacOS and run into an ssl or tls error, use the 3110 virtual
+environment, since it provides a clean OCaml environment, and download the
+previous packages. 
 
-Animals: `🐵 monkey` | `🐶 dog` | `🐱 cat` | `🦄 unicorn` | `🐷 pig`
-
-# Stickers
-
-To use a sticker, type `#[sticker number]`. A list of available stickers can be viewed by typing `@stickers`.
+Once you have downloaded the required packages, run `make essenger` to run
+Essenger. Please ignore the warnings. Have fun chatting!
