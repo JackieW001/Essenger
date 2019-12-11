@@ -1,9 +1,14 @@
-# Essenger
-The better messenger. 
-
 Thank you for downloading Essenger: The better Messenger (TM)
 
-Essenger was built using OCaml (version 4.08.1) and requires some dependencies that you may need to install, listed below.
+Essenger requires some dependencies that you may need to install, listed below.
+
+Please first install pkg-config on your laptop. 
+For Windows, run `sudo apt-get install pkg-config`
+For MacOS or Ubuntu run `brew install pkg-config` if you have Homebrew or 
+`port install pkg-config` if you have MacPorts.
+
+Additionally for Windows, run `sudo apt-get install libssl-dev`
+
 If your system does not have one or more of the following
 packages, please use `opam install <package>`. Please note that 
 it is important to download the packages in the order they are listed, 
@@ -30,7 +35,6 @@ Essenger requires the following OCaml packages:
   `cohttp-lwt`
   
   `cohttp-lwt-unix` 
-  
 
 If you are running on WSL and run into an ssl or tls error, run the following
 two commands: 
@@ -39,9 +43,15 @@ two commands:
   
   `sudo apt-get install libssl-dev`
 
-If you are on MacOS and run into an ssl or tls error, use the 3110 virtual
-environment, since it provides a clean OCaml environment, and download the
-previous packages. 
+If you fun into an ssl or tls error, please use the 3110 virtual
+environment, since it provides a clean environment, and download OCaml and 
+repeat the steps above. 
 
 Once you have downloaded the required packages, run `make essenger` to run
 Essenger. Please ignore the warnings. Have fun chatting!
+
+If you are looking around in server.ml please ignore the red squigglies. 
+We think the merlin file doesn't recognize the cohttp-lwt-unix package
+yet the program runs perfectly fine.
+
+
