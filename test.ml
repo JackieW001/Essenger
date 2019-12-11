@@ -243,7 +243,9 @@ let new_ttt_game =
    u1_moves = ref [];
    win = ref false;}
 
-(** Test suite for basic functionality of Tic Tac Toe game.*)
+(** Test suite for basic functionality of Tic Tac Toe game.
+    **IMPORTANT NOTE**: these tests must be run individually otherwise they
+    will interfere with each other*)
 let game_tests = 
   "tic tac toe test suite ">:::
   [
@@ -256,32 +258,85 @@ let game_tests =
        ); *)
 
     (** End interactive tests *)
-    "check that board updates (u0 select 5)" >:: (fun _ -> 
+    (* ("check that board updates (u0 takes 5)" >:: (fun _ -> 
+         let new_game = new_ttt_game in 
+         let move = valid_move 5 0 new_game in 
+         assert_equal true 
+           (!(move.board).(4) = "O")
+       )); *)
+    (* "check a sequence of two moves (u0 takes 5, u1 takes 1)" >:: (fun _ ->
         let new_game = new_ttt_game in 
         let move = valid_move 5 0 new_game in 
         assert_equal true 
-          (!(move.board).(4) = "O")
-      );
-    "check that X and O alternate" >:: (fun _ ->
+          (!(move.board).(4) = "O");
+        let move2 = valid_move 1 1 move in
+        assert_equal true (!(move2.board).(0) = "X")
+       ); *)
+    (* "check a sequence of three moves (u0 takes 1, u1 takes 2, u0 takes 3)" >::
+       (fun _-> 
+       let new_game = new_ttt_game in 
+       let move = valid_move 1 0 new_game in 
+       assert_equal true (!(move.board).(0) = "O");
+       let move2 = valid_move 2 1 move in
+       assert_equal true (!(move2.board).(1) = "X");
+       let move3 = valid_move 3 0 move2 in 
+       assert_equal true (!(move3.board).(2) = "O");
+       assert_equal true (!(move3.board).(1) = "X");
+       assert_equal true (!(move3.board).(0) = "O");
+       );
+       "check that X and O alternate" >:: (fun _ ->
         let new_game = new_ttt_game in 
         let move = valid_move 5 0 new_game in 
         assert_equal true (!(move.board).(4) = "O");
         let move2 = valid_move 1 1 move in
         assert_equal true (!(move2.board).(0) = "X")
-      )
+       ); *)
+    "check that the win condition is set to true if u0 wins" >:: 
+    (fun _ -> 
+       let new_game = new_ttt_game in 
+       let move = valid_move 5 0 new_game in 
+       assert_equal true 
+         (!(move.board).(4) = "O");
+       let move2 = valid_move 1 1 move in
+       assert_equal true (!(move2.board).(0) = "X");
+       let move3 = valid_move 3 0 move2 in 
+       assert_equal true (!(move3.board).(2) = "O");
+       let move4 = valid_move 2 1 move3 in
+       assert_equal true (!(move4.board).(1) = "X");
+       let move5 = valid_move 7 0 move4 in
+       assert_equal true (!(move5.board).(6) = "O");
+       assert_equal true (!(move5.win));
+    );
+
+    "check that the win condition is set to true if u1 wins" >:: 
+    (fun _ -> 
+       let new_game = new_ttt_game in 
+       let move = valid_move 1 0 new_game in 
+       assert_equal true 
+         (!(move.board).(0) = "O");
+       let move2 = valid_move 5 1 move in
+       assert_equal true (!(move2.board).(4) = "X");
+       let move3 = valid_move 2 0 move2 in 
+       assert_equal true (!(move3.board).(1) = "O");
+       let move4 = valid_move 3 1 move3 in
+       assert_equal true (!(move4.board).(2) = "X");
+       let move5 = valid_move 4 0 move4 in
+       assert_equal true (!(move5.board).(3) = "O");
+       let move6 = valid_move 7 1 move5 in 
+       assert_equal true (!(move6.board).(6) = "X");
+       assert_equal true (!(move6.win));
+    );
   ]
 
 let tests =
   [
+    (* NOTE: the next three sub test suites are more reliable when run 
+       individually. *)
     user_tests; 
     convo_tests;
     gc_test;
-    game_tests; 
-    (* 
-    user_tests;  
-    convo_tests;  
 
-    *) 
+    game_tests; 
   ]
 
 let suite =
