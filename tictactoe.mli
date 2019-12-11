@@ -47,3 +47,6 @@ val intro: string -> string -> game
 (** [string_of_game game] returns a string representation of the [game]. *)
 val string_of_game: game -> string
 
+(** [game_of_string game] returns a game representation of the string [game]. *)
+val game_of_string: string -> game
+

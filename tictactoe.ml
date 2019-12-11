@@ -152,3 +152,41 @@ let intro u0 u1 =
   update_board !(game.board) game;
   move game
 
+(** [arr_of_board arr i] returns an array representation of a the board string. *)
+let rec arr_of_board arr i = function
+  | [] -> arr
+  | h::t -> arr.(i) <- h; arr_of_board arr (i+1) t
+
+(** [list_of_moves lst] returns a list representation of the user moves string. *)
+let rec list_of_moves lst = function
+  | [] -> lst
+  | h::t -> list_of_moves ((int_of_string h)::lst) t
+
+(** [parse_game_string arr i] returns an array representation of the game. *)
+let rec parse_game_string arr i = function
+  | [] -> arr
+  | h::t -> (
+      let index = Str.search_forward (Str.regexp {|\\((:\w*\n))\\|}) h 0 in 
+      let matched = String.sub h (index+1) (String.length h - (index+1)) in 
+      let value = Str.matched_string matched in
+      arr.(i) <- value;
+      parse_game_string arr (i+1) t
+    )
+
+(** [game_of_string s] returns a game of type [Tictactoe.game].*)
+let game_of_string s = 
+  let split_game = Str.split (Str.regexp "\\[ \n]\\") s in
+  let game_array = parse_game_string [|""; ""; ""; "";""; ""; ""|] 0 split_game in
+  let game : game = {
+    u0 = game_array.(0);
+    u1 = game_array.(1);
+    state = ref (int_of_string game_array.(2));
+    board = ref (Str.split (Str.regexp "\\[;]\\") game_array.(3) 
+                 |> arr_of_board [|""; ""; ""; "";""; ""; ""; ""; ""|] 0);
+    u0_moves = ref ((Str.split (Str.regexp "\\[;]\\") game_array.(4))
+                    |> list_of_moves []);
+    u1_moves = ref ((Str.split (Str.regexp "\\[;]\\") game_array.(5))
+                    |> list_of_moves []);
+    win = ref (bool_of_string game_array.(6))
+  } in
+  game
