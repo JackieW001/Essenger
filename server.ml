@@ -4,6 +4,8 @@ open Lwt
 open Cohttp
 open Cohttp_lwt_unix
 open Sha256
+open Tictactoe
+
 (** This will be the file representing the server *)
 type sender = string 
 type recipient = string 
@@ -502,60 +504,24 @@ let delete_gc gc_name =
   let _ = Client.delete 
       (Uri.of_string (firebase^"/GroupChats/"^gc_name^".json")) in ()
 
+(******** TICTACTOE FUNCTIONS ***********)
 
+let update_game user1 user2 g = 
+  let users = sort_users user1 user2 in 
+  let data = Cohttp_lwt.Body.of_string ("{\"game\":\""^
+                                        (Tictactoe.string_of_game g)^"\"}") in 
+  let _ = Client.put ~body:data 
+      (Uri.of_string (firebase^"/Conversations/"^(fst users)^
+                      "_to_"^(snd users)^"/TTT.json"))
+          |> return_body |> Lwt_main.run in 
+  ()
 
-(* Below is used for testing *)
-
-let ()= (); 
-  (* add_msg "test1" "test2" "hi"; 
-     add_msg "test1" "test2" "bye"; 
-     print_list (get_notifications "test2");
-     print_list (get_conversation_history "test1" "test2");*)
-  (* print_list (get_notifications "test2"); *) 
-  (* update_notification_from_user "test1" "test2"; 
-     update_notification_from_user "test3" "test2"; *) 
-  (* delete_notification_from_user "test1" "test2"; 
-     print_list (get_notifications "test2"); *) 
-  (* create_gc "special_surprise" ["jackie";"william"];
-     add_gc_msg "special_surprise" "jackie" "bye bye";
-     add_gc_msg "special_surprise" "william" "hi"; 
-     print_list (get_gc_history "special_surprise"); *) 
-  (* create_gc "special_surprise" ["jackie";"william"];
-     add_gc_msg "special_surprise" "jackie" "bye bye"; *)
-
-  (* 
-  get_gc_users "second chat" |> print_list;
-  create_gc "first chat" [];
-  *)
-  (* create_gc "first chat" ["jackie";"banpreet"]; *)
-(*
-  print_endline (string_of_lst [""]);
-  print_endline (string_of_lst ["hello";"hi"]);
-  *) 
-  (*
-  add_friend "test" "jackie";
-    add_friend "test" "banpreet";
-    *)
-  (*get_friends "test" |> print_list;*)
-  (*add_msg "ashneel" "beep" "hello there"; *)
-(*
-  get_num_friends "ashneel" |> string_of_int |> print_endline;
-  add_friend "ashneel" "jackie";
-  get_num_friends "ashneel" |> string_of_int |> print_endline;
-  add_friend "ashneel" "michelle";
-  *)
-  (* inc_num_friends "ashneel"; *)
-  (*add_friend "ashneel" "jackie";
-    get_friends "ashneel";*)
-  (* get_conversation_history "jackie" "ashneel" 5; *)
-  (* TESTING ADDING NEW MESSAGES TO FIREBASE *)
-  (* print_endline(get_num_msgs "bob" "michael" |> string_of_int); *)
-  (*inc_num_msgs "jackie" "banpreet" *)
-  (*print_endline((get_num_msgs "jackie" "banpreet") |> string_of_int);*)
-  (*  TESTING DELETING A USER
-      let deleted_user = Lwt_main.run (delete_user "michael") in 
-      print_endline ("Received body\n" ^ deleted_user);
-      let deleted_conversation = 
-      Lwt_main.run (delete_conversation "bob" "michael") in
-      print_endline ("Received body\n" ^ deleted_conversation);
-  *)
+let get_game user1 user2 = 
+  let users = sort_users user1 user2 in 
+  let request =  Client.get
+      (Uri.of_string (firebase^"/Conversations/"^(fst users)^
+                      "_to_"^(snd users)^"/TTT/game.json"))
+                 |> return_body |> Lwt_main.run in 
+  let game = String.sub request 1 ((String.length request)-2) in 
+  if (substring_contains game "null") then None 
+  else Some (game_of_string game) 

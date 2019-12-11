@@ -1,3 +1,5 @@
+open Tictactoe
+
 (** 
    The backbone storage system for Essenger. 
    The database Essenger uses is Google's Firebase. Using REST API calls,
@@ -96,4 +98,14 @@ val get_gc_history : string -> string list
 
 (** [delete_gc g] deletes group chat [g] *)
 val delete_gc : string -> unit
+
+(********************** Tic Tac Toe Game Functions ***********************)
+
+(** [update_game g u1 u2] puts the string represenation of game [g] between
+    [u1] and [u2] into database *)
+val update_game : string -> string -> Tictactoe.game -> unit 
+
+(** [get_game u1 u2] gets the tictactoe game representation between [u1] 
+    and [u2] *)
+val get_game : string -> string -> Tictactoe.game option 
 
