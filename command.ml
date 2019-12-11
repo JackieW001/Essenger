@@ -133,7 +133,7 @@ let parse input =
           if newgame = "new" then Tictactoe ((mess |> List.hd), "new") 
           else Tictactoe ((mess |> List.hd), "")
         with 
-        | hd -> Tictactoe ((mess |> List.hd), "")
+        | Failure x -> raise Malformed
       )
       else
       if List.length mess > 0 

@@ -131,7 +131,8 @@ let rec main current_user ()=
     | Get r ->( (* Get message history *) 
         try
           if Server.user_exists r then 
-            (print_list (List.rev 
+            (ANSITerminal.(print_string [cyan] "\nMessages: \n");
+              print_list (List.rev 
                            (Server.get_conversation_history current_user r)); 
              main current_user ())
           else 
