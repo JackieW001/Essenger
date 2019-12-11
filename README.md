@@ -3,13 +3,14 @@ The better messenger.
 
 Thank you for downloading Essenger: The better Messenger (TM)
 
-Essenger requires some dependencies that you may need to install, listed below.
+Essenger was built using OCaml (version 4.08.1) and requires some dependencies that you may need to install, listed below.
 If your system does not have one or more of the following
 packages, please use `opam install <package>`. Please note that 
 it is important to download the packages in the order they are listed, 
 especially the packages listed after str. 
 
 Essenger requires the following OCaml packages: 
+  
   `yojson`
   
   `ANSITerminal`
@@ -33,6 +34,7 @@ Essenger requires the following OCaml packages:
 
 If you are running on WSL and run into an ssl or tls error, run the following
 two commands: 
+  
   `sudo apt-get install pkg-config`
   
   `sudo apt-get install libssl-dev`
