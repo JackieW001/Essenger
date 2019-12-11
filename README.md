@@ -1,4 +1,4 @@
-#Essenger
+# Essenger
 Thank you for downloading Essenger: The better Messenger (TM)
 
 Essenger requires some dependencies that you may need to install, listed below.
