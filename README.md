@@ -1,6 +1,8 @@
 # Essenger
 Thank you for downloading Essenger: The better Messenger (TM)
 
+Last run on ocaml switch and base compiler: `4.08.0`
+
 Essenger requires some dependencies that you may need to install, listed below.
 
 Please first install pkg-config on your laptop. 
